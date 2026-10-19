@@ -57,8 +57,9 @@ User-driven refinements on top of the original plan:
 
 - **All injected buttons are `btn-primary`** (`#337ab7`) — the same colour as ngrok's `Replay`
   button. That includes the per-header copy icons.
-- **Per-header copy is always visible** (not hover-revealed); reserved `padding-right: 28px` keeps
-  the table from shifting.
+- **Per-header copy is always visible** (not hover-revealed) and pinned to the **left** edge of the
+  value cell, so the icon precedes the value; reserved `padding-left: 28px` keeps the table from
+  shifting.
 - **Response body is a single action with no dropdown** — it always copies ngrok's Summary
   rendering of the body (`#response-pane-0`), falling back to the raw body only when the Summary
   pane has none, and to binary handling for non-text bodies.

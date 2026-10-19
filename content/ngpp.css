@@ -10,15 +10,16 @@
   margin-right: 0;
 }
 
-/* Per-header copy button: inside the existing <td>, ALWAYS visible. */
+/* Per-header copy button: inside the existing <td>, ALWAYS visible, pinned to the
+ * LEFT edge so the icon sits before the value rather than after it. */
 #request-pane-1 table tbody td,
 #response-pane-1 table tbody td {
-  padding-right: 28px; /* reserved so revealing never shifts layout */
+  padding-left: 28px; /* reserved so the icon never overlaps the value / shifts layout */
   position: relative;
 }
 .ngpp-hdr-copy {
   position: absolute;
-  right: 4px;
+  left: 4px;
   top: 50%;
   transform: translateY(-50%);
   border: 0;

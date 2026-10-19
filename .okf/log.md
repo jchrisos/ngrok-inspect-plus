@@ -4,6 +4,13 @@ Newest first. Dates are ISO (`YYYY-MM-DD`).
 
 ## 2026-10-19
 
+- **Per-header copy icons moved to the LEFT of the value** (user request: *"the copy header values
+  must be in the left"*). The icon was pinned to the right edge of the value cell (`right: 4px`); it
+  is now pinned to the left edge (`left: 4px`) so it precedes the value instead of trailing it. The
+  reserved space flips from `padding-right: 28px` to `padding-left: 28px` (still always reserved, so
+  nothing shifts). CSS-only change in `content/ngpp.css` — no markup or copy behaviour change;
+  `padding-left` is equally safe because `cellValue()` strips the button via `[data-ngpp]` before
+  reading the `<td>` text.
 - **Dashboard on a non-4040 port now works** (user report: *"if port is not 4040, the extension is
   not working"*). Root cause: a Chrome match pattern with an explicit port matches **only** that
   port ("Match patterns match all ports unless an explicit port is specified"), and `:4040` was
