@@ -28,7 +28,7 @@ test: ## Run the pure-logic unit tests (node --test)
 	node --test 'tests/*.test.js' 'tests/*.test.mjs'
 
 check: ## Syntax-check all JS and validate the JSON manifests
-	@for f in content/*.js content/features/*.js theme/apply-dark.js theme/apply-dark-auto.js popup/popup.js tests/*.js; do \
+	@for f in content/*.js content/features/*.js theme/apply-dark.js theme/apply-dark-auto.js popup/popup.js tests/*.js tests/*.mjs; do \
 		node --check "$$f" || exit 1; \
 	done
 	@python3 -m json.tool manifest.json >/dev/null && echo "manifest.json OK"

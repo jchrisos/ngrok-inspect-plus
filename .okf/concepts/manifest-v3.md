@@ -30,5 +30,6 @@ considered.
   use `chrome.storage` for anything that must survive.
 - **No remotely hosted code** — all JavaScript must ship inside the bundle. No CDN scripts,
   no `eval` of fetched content.
-- The entrypoint is `manifest.json`; the concrete `permissions` / `host_permissions` list
-  (it will at minimum need access to `localhost:4040`) is still to be defined.
+- The entrypoint is `manifest.json`. Permissions are `storage` + `scripting`; `host_permissions`
+  cover **all** loopback ports (`http://localhost/*`, `http://127.0.0.1/*` — deliberately **no
+  explicit port**, so the extension follows the dashboard wherever the agent serves it).

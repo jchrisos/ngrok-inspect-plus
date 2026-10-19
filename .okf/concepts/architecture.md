@@ -6,6 +6,8 @@ status: active
 verified:
   - by: "okf-init"
     at: "2026-10-18"
+  - by: "okf-update"
+    at: "2026-10-19"
 sources:
   - uri: "file://docs/plans/ngrok-dashboard-features-2026-10-18.md"
     credibility: high
@@ -29,10 +31,19 @@ rather than reusing the dashboard's data layer (which speaks gRPC-Web + protobuf
 
 ## Key mechanisms
 
+- **Any loopback port.** The manifest matches `http://localhost/*` and `http://127.0.0.1/*` with
+  **no explicit port** — a match pattern that names a port matches only that port, which silently
+  disabled the whole extension on a custom dashboard port. Because that also injects the bundle
+  into unrelated localhost apps, `ngpp.isDashboard()` (keyed off the agent's stable shell:
+  `<body id="ngrok">`, `<meta name="author" content="ngrok">`) gates `content/main.js`, which bails
+  before doing anything on any other page.
 - **No-FOUC dark mode.** The persisted `themeMode` *is* the content-script registration state:
   the SW registers `theme/apply-dark.js` or `theme/apply-dark-auto.js` at `document_start`, so
   the `html.ngpp-dark` class lands synchronously before first paint. `dark.css` is always
-  injected but inert without the class; live toggling is a class flip.
+  injected but inert without the class; live toggling is a class flip. That pre-paint script is an
+  unconditional `classList.add`, so it is registered for the **default `:4040` origin only** — a
+  dashboard on a custom port is themed at `document_idle` by `content/theme.js` (possible brief
+  flash). The live-theme broadcast, by contrast, queries **all** loopback ports.
 - **Injection survival.** One debounced `MutationObserver` (`content/observer.js`) re-asserts
   injected UI; every feature's `ensure()` is idempotent (guarded by `data-ngpp`).
 - **Selector registry.** `content/selectors.js` is the single source of truth; 27 of the

@@ -7,7 +7,7 @@
 
   "permissions": ["storage", "scripting"],
 
-  "host_permissions": ["http://localhost:4040/*", "http://127.0.0.1:4040/*"],
+  "host_permissions": ["http://localhost/*", "http://127.0.0.1/*"],
 
   "background": {
     "service_worker": "background/service-worker.js",
@@ -22,13 +22,13 @@
 
   "content_scripts": [
     {
-      "matches": ["http://localhost:4040/*", "http://127.0.0.1:4040/*"],
+      "matches": ["http://localhost/*", "http://127.0.0.1/*"],
       "css": ["theme/dark.css", "content/ngpp.css"],
       "run_at": "document_start",
       "all_frames": false
     },
     {
-      "matches": ["http://localhost:4040/*", "http://127.0.0.1:4040/*"],
+      "matches": ["http://localhost/*", "http://127.0.0.1/*"],
       "js": [
         "content/selectors.js",
         "content/settings.js",

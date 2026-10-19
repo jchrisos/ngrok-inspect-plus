@@ -11,6 +11,12 @@
   }
 
   function init() {
+    // The class is normally applied pre-paint by the dynamically registered 1-line script
+    // (background/service-worker.js). That script only covers the *default* ngrok origin
+    // (:4040), so a dashboard on a custom port is themed here instead — idempotent, and it
+    // also covers a missed pre-paint script.
+    apply(ngpp.settings.cached().themeMode);
+
     chrome.runtime.onMessage.addListener((msg) => {
       if (msg && msg.type === 'ngpp:theme') apply(msg.mode);
     });

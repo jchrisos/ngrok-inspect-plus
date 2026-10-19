@@ -3,6 +3,10 @@
   const ngpp = (root.ngpp = root.ngpp || {});
 
   async function boot() {
+    // The content scripts match every loopback port, so they run on unrelated localhost
+    // apps too. Bail out silently unless this is actually the ngrok dashboard.
+    if (!ngpp.isDashboard()) return;
+
     await ngpp.settings.get(); // prime the cache
     ngpp.toast.init();
     ngpp.theme.init();

@@ -3,8 +3,9 @@
 ## What this is
 
 `ngrok-inspect-plus` is a **Google Chrome extension** that improves the usability of the ngrok
-dashboard served at `http://localhost:4040`. The extension targets that local dashboard
-UI; it is not a general-purpose web extension and does not talk to ngrok's cloud API.
+agent dashboard, served on **any loopback port** (`http://localhost:<port>` /
+`http://127.0.0.1:<port>`; the agent defaults to `:4040`). The extension targets that local
+dashboard UI; it is not a general-purpose web extension and does not talk to ngrok's cloud API.
 
 It uses **Manifest V3** (`manifest_version: 3`). Consequences to keep in mind: a background
 **service worker** instead of a persistent background page (event-driven, can be terminated
@@ -33,11 +34,17 @@ plain ES2022 files loaded unpacked from the repo root.
 ## Architecture
 
 - `manifest.json` — MV3. Permissions: `storage`, `scripting`; host perms for
-  `http://localhost:4040/*` and `http://127.0.0.1:4040/*`. No `web_accessible_resources`
-  (icons are inline SVG / `data:` URIs) — keep it that way.
+  `http://localhost/*` and `http://127.0.0.1/*` — **no explicit port**. A match pattern with a
+  port only matches that port, so pinning `:4040` silently disables the whole extension when the
+  agent serves its dashboard elsewhere (`ngrok http 8080 --web-addr localhost:4041`). No
+  `web_accessible_resources` (icons are inline SVG / `data:` URIs) — keep it that way.
 - `background/service-worker.js` (ESM) — **stateless**. Its only job is to own the *dynamic
   content-script registration* that removes dark-mode FOUC. Imports `background/settings.js`
   (a minimal ESM copy of the defaults — **keep in sync with `content/settings.js`**).
+  - The pre-paint script is an unconditional `classList.add('ngpp-dark')`, so it is registered
+    for the **default `:4040` origin only** (`PREPAINT_MATCHES`) — widening it to all loopback
+    ports would darken every unrelated localhost app. The live-theme **broadcast** uses
+    `LOOPBACK_MATCHES` instead, so a theme change still reaches a custom-port dashboard.
 - `content/` — classic scripts in `manifest.json` order, sharing one isolated world via
   `globalThis.ngpp`. **Not ES modules**: they cannot `import`, so `ngpp.curl` /
   `ngpp.responseBody` / `ngpp.rawMessage` use a UMD wrapper that also `module.exports` for
@@ -45,6 +52,10 @@ plain ES2022 files loaded unpacked from the repo root.
   - `selectors.js` is the **single source of truth** for every DOM selector; 27 of the
     dashboard's classes are CSS-module hashes, matched by attribute-prefix (`[class*="_params_"]`).
     Add selectors there, not inline.
+  - Because the content scripts match **every** loopback port, `ngpp.isDashboard()` — keyed off
+    the agent's stable shell markers (`<body id="ngrok">`, `<meta name="author" content="ngrok">`),
+    not the class hashes — is the gate in `main.js`: on any other localhost page the bundle bails
+    before doing anything (no console spam, no stray theming).
   - `observer.js` re-asserts injected UI on a debounced `MutationObserver`; every feature's
     `ensure()` **must be idempotent** (guarded by `data-ngpp`).
   - Copy handlers read the **live DOM at click time** — never capture payloads in a closure
@@ -76,7 +87,10 @@ throwaway temp dir — **no fixture data lands in the repo**. Then open
 `http://localhost:4040/inspect/http`, or drive it via the Chrome DevTools MCP.
 
 `--subdomain test-extension` resolves to `https://test-extension.sa.ngrok.io`; the ngrok
-dashboard then appears at `http://localhost:4040` and is what the extension targets.
+dashboard then appears at `http://localhost:4040` and is what the extension targets. The agent's
+dashboard port is configurable (`--web-addr`, or `web_addr` in `ngrok.yml`); the extension follows
+it to any loopback port. Only the pre-paint dark-mode script is pinned to `:4040`, so a custom
+port may flash light→dark on load (see the service-worker note above).
 
 Gotchas observed with the installed ngrok **3.39.11**:
 
@@ -116,7 +130,7 @@ This project uses the official Open Knowledge Format (OKF v0.2) located in `./.o
 - **Never leave the ngrok tunnel running.** `ngrok http 8080 --subdomain test-extension`
   exposes the served directory to the public internet. Kill it (and the fixture server) when
   done — a subagent has already leaked this once.
-- Clipboard writes need **no permission** on `localhost:4040` (secure context, `clipboard-write`
+- Clipboard writes need **no permission** on a loopback origin (secure context, `clipboard-write`
   granted by default); `navigator.clipboard.writeText()` from the content script is correct.
   There is no `clipboardWrite` MV3 permission.
 - Bodies **≥ ~100 KiB are never captured by ngrok** — the degraded path is headers-only plus a

@@ -38,6 +38,19 @@
     respSummaryBody: '#response-pane-0 pre > code',
   };
 
+  /** Is this page the ngrok agent dashboard?
+   * The content scripts match *every* loopback port, so they are also injected into
+   * unrelated localhost apps; this is the cheap, silent gate that keeps them out.
+   * It keys off the agent's stable HTML shell (`<body id="ngrok">`, `<meta name="author"
+   * content="ngrok">`) — NOT the CSS-module class hashes, which change per release.
+   * Verified against ngrok 3.39.11. */
+  ngpp.isDashboard = function () {
+    return (
+      document.body?.id === 'ngrok' ||
+      document.querySelector('meta[name="author"][content="ngrok"]') !== null
+    );
+  };
+
   /** Logs one warning if the DOM shape moved on. Returns false when it did. */
   ngpp.assertDashboardShape = function () {
     const required = ['app', 'navbar', 'listRow', 'panel', 'toolbarSlot'];

@@ -22,6 +22,11 @@ To test the extension against a populated ngrok dashboard:
 2. Start the tunnel: `ngrok http 8080 --subdomain test-extension`.
 3. Open the dashboard at `http://localhost:4040` — this is the UI the extension modifies.
 
+The dashboard port is configurable (`ngrok http 8080 --web-addr localhost:4041`, or `web_addr` in
+`ngrok.yml`); the extension detects and augments the dashboard on **any** loopback port. Only the
+pre-paint dark-mode script is pinned to `:4040` (see `concepts/dark-theme.md`), so a custom port
+may flash light→dark on load.
+
 ## Gotchas
 
 - Installed ngrok is **3.39.11**. `--subdomain` is deprecated in favour of `--domain`.

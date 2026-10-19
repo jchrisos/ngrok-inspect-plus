@@ -4,6 +4,22 @@ Newest first. Dates are ISO (`YYYY-MM-DD`).
 
 ## 2026-10-19
 
+- **Dashboard on a non-4040 port now works** (user report: *"if port is not 4040, the extension is
+  not working"*). Root cause: a Chrome match pattern with an explicit port matches **only** that
+  port ("Match patterns match all ports unless an explicit port is specified"), and `:4040` was
+  pinned in `manifest.json` (`host_permissions` + both `content_scripts.matches`) and in the
+  service worker. Fix: match **all** loopback ports (`http://localhost/*`, `http://127.0.0.1/*`).
+  Because that also injects the bundle into unrelated localhost apps, added `ngpp.isDashboard()`
+  — keyed off the agent's stable HTML shell (`<body id="ngrok">`, `<meta name="author"
+  content="ngrok">`, verified live against 3.39.11) — as a gate at the top of `content/main.js`,
+  and `content/theme.js` now also applies the mode at `document_idle` (custom-port catch-up).
+  The no-FOUC pre-paint script stays pinned to the **default `:4040` origin** (it is an
+  unconditional `classList.add`; a loopback-wide match would darken every localhost app), while
+  the live-theme broadcast queries all loopback ports. New tests: `tests/manifest.test.mjs`
+  (patterns carry no port) and `tests/selectors.test.mjs` (detection). `make test` → 37 pass.
+- **Repository re-created and pushed.** The `.git` directory was replaced; history was rebuilt as
+  a single initial commit (`feat: initial ngrok-inspect-plus MV3 extension`) and pushed to
+  `https://github.com/jchrisos/ngrok-inspect-plus.git` (`main`).
 - **Project renamed to `ngrok-inspect-plus`** (user request): the repo folder was renamed from
   `ngrok++` to `ngrok-inspect-plus`. Propagated the name through every identifier: `manifest.json`
   `name`/`default_title`, `package.json` `name` (was `ngrok-plus-plus`), source-header comments,

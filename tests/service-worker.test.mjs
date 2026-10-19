@@ -15,12 +15,12 @@ const SW_SRC = readFileSync(new URL('../background/service-worker.js', import.me
 const SETTINGS_SRC = readFileSync(new URL('../background/settings.js', import.meta.url), 'utf8');
 
 function makeChrome(settings) {
-  const calls = { registered: [], unregistered: [], messages: [] };
+  const calls = { registered: [], unregistered: [], messages: [], queries: [] };
   let registered = [];
   const chrome = {
     storage: {
       sync: { get: async () => ({ settings }) },
-      onChanged: { addListener() {} },
+      onChanged: { addListener: (fn) => (calls.onChanged = fn) },
     },
     scripting: {
       getRegisteredContentScripts: async () => registered.slice(),
@@ -38,7 +38,10 @@ function makeChrome(settings) {
       onStartup: { addListener: (fn) => (calls.onStartup = fn) },
     },
     tabs: {
-      query: async () => [{ id: 7 }],
+      query: async (q) => {
+        calls.queries.push(q);
+        return [{ id: 7 }];
+      },
       sendMessage: async (id, msg) => calls.messages.push({ id, msg }),
     },
   };
@@ -62,6 +65,8 @@ test('themeMode "dark" registers apply-dark.js at document_start', async () => {
   assert.deepEqual(calls.registered[0].js, ['theme/apply-dark.js']);
   assert.equal(calls.registered[0].runAt, 'document_start');
   assert.equal(calls.registered[0].id, 'ngpp-theme-apply');
+  // pinned to the DEFAULT origin: the pre-paint script is unconditional, so it must not
+  // match every loopback port (that would darken unrelated localhost apps)
   assert.deepEqual(calls.registered[0].matches, ['http://localhost:4040/*', 'http://127.0.0.1:4040/*']);
   assert.equal(calls.registered[0].allFrames, false);
 });
@@ -92,4 +97,13 @@ test('settings default to auto when storage is empty', async () => {
   const { calls } = await loadSW(undefined);
   await calls.onInstalled();
   assert.deepEqual(calls.registered[0].js, ['theme/apply-dark-auto.js']);
+});
+
+test('live theme broadcasts reach the dashboard on ANY loopback port', async () => {
+  const { calls } = await loadSW({ themeMode: 'dark' });
+  calls.onChanged({ settings: { newValue: { themeMode: 'dark' } } }, 'sync');
+  await new Promise((r) => setTimeout(r, 5)); // let the fire-and-forget handler settle
+
+  assert.deepEqual(calls.queries[0].url, ['http://localhost/*', 'http://127.0.0.1/*']);
+  assert.deepEqual(calls.messages[0], { id: 7, msg: { type: 'ngpp:theme', mode: 'dark' } });
 });

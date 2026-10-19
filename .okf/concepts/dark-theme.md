@@ -24,6 +24,12 @@ bootstrap script (`theme/apply-dark.js` / `theme/apply-dark-auto.js`) that the s
 registers dynamically — the persisted `themeMode` *is* the registration state, so there is no
 async read and no FOUC. Live toggling is just a class flip (see `concepts/architecture.md`).
 
+That pre-paint registration is pinned to the **default `:4040` origin only**, because the script
+is an unconditional `classList.add('ngpp-dark')` and matching all loopback ports would darken
+every unrelated localhost app. A dashboard on a **custom port** is therefore themed later, by
+`content/theme.js` at `document_idle` (which also re-applies the class as a catch-up) — it may
+flash light→dark on load. `dark.css` being inert elsewhere is what makes the broad match safe.
+
 ## Cascade strategy
 
 - Scope **every** rule under `html.ngpp-dark` → specificity `(0,1,1)`, which beats Bootstrap's
