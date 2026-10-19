@@ -6,6 +6,8 @@ status: active
 verified:
   - by: "user"
     at: "2026-10-18"
+  - by: "okf-update"
+    at: "2026-10-19"
 sources:
   - uri: "user://project-brief"
     credibility: high

@@ -70,6 +70,15 @@ Pure logic (`content/curl.js`, `content/response-body.js`, `content/raw-message.
 UMD wrapper so it is both a classic content script and `module.exports` for `node --test`.
 No framework, no install.
 
+The DOM-facing and manifest-level logic is covered without a browser:
+
+- `tests/selectors.test.mjs` loads the classic `content/selectors.js` in a **`node:vm` sandbox**
+  with a stubbed `document`, so `ngpp.isDashboard()` (the gate that keeps the bundle off unrelated
+  localhost pages) is unit-tested despite being a non-module content script.
+- `tests/manifest.test.mjs` parses `manifest.json` and asserts the match patterns carry **no
+  explicit port** — the regression guard for the non-4040 dashboard bug.
+- `tests/service-worker.test.mjs` loads the real service worker against a mocked `chrome` API.
+
 ## Verified against
 
 ngrok **3.39.11**. Verified live on 2026-10-18/19 (see `log.md`). The dark theme has its own
