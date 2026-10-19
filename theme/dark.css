@@ -1,0 +1,197 @@
+/* ngrok-inspect-plus — dark theme. The ONLY stylesheet we author.
+ *
+ * Always injected at document_start, but INERT until <html> carries .ngpp-dark
+ * (applied synchronously by a dynamically registered bootstrap script).
+ *
+ * Cascade strategy (plan §3.4): every rule is scoped under html.ngpp-dark so its
+ * specificity (0,1,1) beats Bootstrap's single-class rules (0,1,0) WITHOUT !important.
+ * Never use @layer here — unlayered page CSS would win.
+ */
+
+html.ngpp-dark {
+  --ngpp-bg: #14171c;
+  --ngpp-surface: #1b1f26;
+  --ngpp-surface-2: #232833;
+  --ngpp-nav: #0d1014;
+  --ngpp-line: #2f3642;
+  --ngpp-fg: #dfe3ea;
+  --ngpp-fg-muted: #98a1b0;
+  --ngpp-code-bg: #0f1216;
+  --ngpp-selected: #2b3a4d; /* distinct from hover (--ngpp-surface-2) */
+  --ngpp-info-bg: #17262f;
+  --ngpp-info-fg: #9fd3ee;
+
+  color-scheme: dark; /* native scrollbars, form controls, caret */
+  background-color: var(--ngpp-bg);
+}
+
+html.ngpp-dark body {
+  background-color: var(--ngpp-bg);
+  color: var(--ngpp-fg);
+}
+html.ngpp-dark .navbar-inverse {
+  background-color: var(--ngpp-nav);
+  border-color: var(--ngpp-line);
+}
+html.ngpp-dark .container,
+html.ngpp-dark .row {
+  background: transparent;
+}
+html.ngpp-dark hr {
+  border-color: var(--ngpp-line);
+}
+html.ngpp-dark .table > tbody > tr > td,
+html.ngpp-dark .table > tbody > tr > th {
+  border-color: var(--ngpp-line);
+}
+html.ngpp-dark .table-hover > tbody > tr:hover {
+  background-color: var(--ngpp-surface-2);
+}
+/* Request-list row hover: the page's own rule is
+ * `._inspectSelector_… ._roundTripSelect_… tr:hover:not(._selected_…)` (0,4,1) -> #ddd.
+ * Beat it on specificity with the same module prefixes (they are prefix-matched anyway). */
+html.ngpp-dark [class*='_inspectSelector_'] [class*='_roundTripSelect_'] tr:hover:not([class*='_selected_']) {
+  background-color: var(--ngpp-surface-2);
+}
+html.ngpp-dark .nav-tabs > li > a {
+  color: var(--ngpp-fg-muted);
+  border-color: transparent;
+}
+/* Tab hover/focus: Bootstrap sets `.nav > li > a:hover { background-color: #eee }`. */
+html.ngpp-dark .nav > li > a:hover,
+html.ngpp-dark .nav > li > a:focus {
+  background-color: var(--ngpp-surface-2);
+  color: var(--ngpp-fg);
+}
+html.ngpp-dark .nav-tabs > li > a:hover {
+  border-color: var(--ngpp-line);
+}
+html.ngpp-dark .nav-tabs > li.active > a,
+html.ngpp-dark .nav-tabs > li.active > a:hover,
+html.ngpp-dark .nav-tabs > li.active > a:focus {
+  background-color: var(--ngpp-surface);
+  border-color: var(--ngpp-line);
+  border-bottom-color: var(--ngpp-surface);
+  color: var(--ngpp-fg);
+}
+html.ngpp-dark .dropdown-menu {
+  background-color: var(--ngpp-surface);
+  border-color: var(--ngpp-line);
+}
+html.ngpp-dark .dropdown-menu > li > a {
+  color: var(--ngpp-fg);
+}
+html.ngpp-dark .dropdown-menu > li > a:hover,
+html.ngpp-dark .dropdown-menu > li > a:focus {
+  background-color: var(--ngpp-surface-2);
+}
+html.ngpp-dark .form-control {
+  background-color: var(--ngpp-surface);
+  color: var(--ngpp-fg);
+  border-color: var(--ngpp-line);
+}
+html.ngpp-dark .btn-default {
+  background-color: var(--ngpp-surface-2);
+  color: var(--ngpp-fg);
+  border-color: var(--ngpp-line);
+}
+html.ngpp-dark .btn-default:hover,
+html.ngpp-dark .btn-default:focus,
+html.ngpp-dark .btn-default:active,
+html.ngpp-dark .open > .btn-default.dropdown-toggle {
+  background-color: var(--ngpp-line);
+  color: var(--ngpp-fg);
+}
+html.ngpp-dark .alert-info {
+  background-color: var(--ngpp-info-bg);
+  color: var(--ngpp-info-fg);
+  border-color: var(--ngpp-line);
+}
+/* Bootstrap `.well` — the empty-state panel ("No requests to display yet"). */
+html.ngpp-dark .well {
+  background-color: var(--ngpp-surface);
+  border-color: var(--ngpp-line);
+  color: var(--ngpp-fg);
+  box-shadow: none;
+}
+html.ngpp-dark .muted,
+html.ngpp-dark .text-muted {
+  color: var(--ngpp-fg-muted) !important; /* Bootstrap uses !important here */
+}
+html.ngpp-dark a {
+  color: #6cb6ff;
+}
+html.ngpp-dark a:hover,
+html.ngpp-dark a:focus {
+  color: #9fd3ee;
+}
+
+/* Hashed CSS-module classes -> attribute-prefix match (they change per release). */
+html.ngpp-dark [class*='_params_'] th,
+html.ngpp-dark [class*='_params_'] td {
+  border-color: var(--ngpp-line);
+}
+html.ngpp-dark [class*='_row_'],
+html.ngpp-dark [class*='_info_'],
+html.ngpp-dark [class*='_inspectRoundTrip_'] {
+  background: transparent;
+}
+html.ngpp-dark [class*='_selected_'] {
+  background-color: var(--ngpp-selected);
+  color: var(--ngpp-fg);
+}
+
+/* Filter box: the wrapper carries the light background, not the inner input. */
+html.ngpp-dark [class*='_inputGroup_'] {
+  background-color: var(--ngpp-surface);
+  border-color: var(--ngpp-line);
+}
+html.ngpp-dark [class*='_input_'] {
+  background-color: transparent;
+  color: var(--ngpp-fg);
+}
+html.ngpp-dark input::placeholder {
+  color: var(--ngpp-fg-muted);
+}
+/* Active item in the Duration / sort dropdown. */
+html.ngpp-dark [class*='_active_'] {
+  background-color: var(--ngpp-surface-2);
+  color: var(--ngpp-fg);
+}
+
+/* Navbar links (Bootstrap inverse defaults are a grey our bare anchor rule can't beat). */
+html.ngpp-dark .navbar-inverse .navbar-nav > li > a,
+html.ngpp-dark .navbar-inverse .navbar-brand,
+html.ngpp-dark .navbar-inverse .navbar-text {
+  color: var(--ngpp-fg-muted);
+}
+html.ngpp-dark .navbar-inverse .navbar-nav > li > a:hover,
+html.ngpp-dark .navbar-inverse .navbar-nav > li > a:focus {
+  color: var(--ngpp-fg);
+}
+
+/* Code / preformatted bodies */
+html.ngpp-dark pre,
+html.ngpp-dark code {
+  background-color: var(--ngpp-code-bg);
+  color: var(--ngpp-fg);
+}
+
+/* highlight.js ships a light token theme; give it dark values. */
+html.ngpp-dark .hljs-attr,
+html.ngpp-dark .hljs-name,
+html.ngpp-dark .hljs-tag {
+  color: #7ec8ff;
+}
+html.ngpp-dark .hljs-string {
+  color: #a5d6a7;
+}
+html.ngpp-dark .hljs-keyword,
+html.ngpp-dark .hljs-meta {
+  color: #d7a6ff;
+}
+
+html.ngpp-dark ::selection {
+  background: #2f4a63;
+  color: #ffffff;
+}

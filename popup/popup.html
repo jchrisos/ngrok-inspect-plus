@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ngrok-inspect-plus</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1>ngrok-inspect-plus</h1>
+
+    <section>
+      <h2>Theme</h2>
+      <div class="radiogroup" role="radiogroup" aria-label="Theme">
+        <label><input type="radio" name="themeMode" value="auto" /> Auto</label>
+        <label><input type="radio" name="themeMode" value="light" /> Light</label>
+        <label><input type="radio" name="themeMode" value="dark" /> Dark</label>
+      </div>
+    </section>
+
+    <section>
+      <h2>Copy as cURL</h2>
+      <label><input type="checkbox" id="curl.multiline" /> Multi-line (<code>\</code> continuations)</label>
+      <label><input type="checkbox" id="curl.stripForwardedHeaders" /> Strip ngrok <code>X-Forwarded-*</code> headers</label>
+      <label><input type="checkbox" id="curl.includeCompressed" /> Add <code>--compressed</code></label>
+      <label class="row">URL scheme
+        <select id="curl.scheme">
+          <option value="https">https</option>
+          <option value="http">http</option>
+        </select>
+      </label>
+      <label class="row">Non-UTF-8 body
+        <select id="curl.binaryBody">
+          <option value="comment">comment only</option>
+          <option value="escaped">ANSI-C escape</option>
+          <option value="base64">base64</option>
+        </select>
+      </label>
+    </section>
+
+    <section>
+      <h2>Response body</h2>
+      <label><input type="checkbox" id="responseBody.normaliseNewlines" /> Normalise CRLF to LF</label>
+      <label class="row">Binary body
+        <select id="responseBody.binaryFallback">
+          <option value="comment">comment only</option>
+          <option value="escaped">ANSI-C escape</option>
+          <option value="base64">base64</option>
+        </select>
+      </label>
+      <p class="hint">“Copy body” always copies the Summary rendering of the response body.</p>
+    </section>
+
+    <p class="hint">
+      Reload the dashboard tab after changing content scripts. The service worker is not
+      hot-reloaded.
+    </p>
+
+    <script src="../content/settings.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

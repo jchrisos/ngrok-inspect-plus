@@ -1,0 +1,60 @@
+{
+  "manifest_version": 3,
+  "name": "ngrok-inspect-plus",
+  "version": "0.1.0",
+  "description": "Dark mode, copy-as-cURL, per-header copy and response-body copy for the local ngrok dashboard.",
+  "minimum_chrome_version": "120",
+
+  "permissions": ["storage", "scripting"],
+
+  "host_permissions": ["http://localhost:4040/*", "http://127.0.0.1:4040/*"],
+
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "ngrok-inspect-plus",
+    "default_icon": { "16": "icons/16.png", "32": "icons/32.png" }
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["http://localhost:4040/*", "http://127.0.0.1:4040/*"],
+      "css": ["theme/dark.css", "content/ngpp.css"],
+      "run_at": "document_start",
+      "all_frames": false
+    },
+    {
+      "matches": ["http://localhost:4040/*", "http://127.0.0.1:4040/*"],
+      "js": [
+        "content/selectors.js",
+        "content/settings.js",
+        "content/toast.js",
+        "content/clipboard.js",
+        "content/raw-message.js",
+        "content/raw-request.js",
+        "content/raw-response.js",
+        "content/response-body.js",
+        "content/curl.js",
+        "content/theme.js",
+        "content/features/copy-curl.js",
+        "content/features/copy-header.js",
+        "content/features/copy-response.js",
+        "content/observer.js",
+        "content/main.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+
+  "icons": {
+    "16": "icons/16.png",
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  }
+}

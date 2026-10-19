@@ -1,0 +1,75 @@
+/* ngrok-inspect-plus — injected UI affordances (NOT theme). Theme lives in theme/dark.css. */
+
+/* Toolbar buttons (Copy as cURL / Copy body) inherit Bootstrap look + dark overrides. */
+.ngpp-toolbar-btn {
+  margin-right: 6px; /* gap before the Replay group on the request side */
+}
+/* The response toolbar holds only our button, so the gap would push it off the right
+ * edge (Replay sits flush at the panel edge). Zero it there so the two align. */
+[data-ngpp='resp-toolbar'] .ngpp-toolbar-btn {
+  margin-right: 0;
+}
+
+/* Per-header copy button: inside the existing <td>, ALWAYS visible. */
+#request-pane-1 table tbody td,
+#response-pane-1 table tbody td {
+  padding-right: 28px; /* reserved so revealing never shifts layout */
+  position: relative;
+}
+.ngpp-hdr-copy {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #337ab7; /* same blue as the Replay (btn-primary) button */
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px;
+  border-radius: 3px;
+  opacity: 1; /* always visible — no hover reveal */
+}
+.ngpp-hdr-copy:hover {
+  color: #4c9aff;
+  background-color: rgba(127, 127, 127, 0.18);
+}
+.ngpp-hdr-copy:focus-visible {
+  color: #4c9aff;
+  outline: 2px solid #4c9aff;
+  outline-offset: 1px;
+}
+
+/* Toast */
+.ngpp-toast {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2147483647;
+  max-width: 420px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  background: #232833;
+  color: #dfe3ea;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+}
+.ngpp-toast--show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.ngpp-toast[data-kind='error'] {
+  background: #4a1f22;
+  color: #ffd7d7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ngpp-toast,
+  .ngpp-hdr-copy {
+    transition: none;
+  }
+}
