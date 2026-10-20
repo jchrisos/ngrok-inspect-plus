@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { splitRawResponse, decodeBytes, classifyBody, toCopyableBody } = require('../content/response-body.js');
+const { splitRawResponse, decodeBytes, classifyBody } = require('../content/response-body.js');
 
 test('splitRawResponse separates head and body on CRLFCRLF', () => {
   const raw = 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nhello';
@@ -52,32 +52,7 @@ test('classifyBody: unavailable stays unavailable', () => {
   assert.deepEqual(classifyBody({ kind: 'unavailable' }), { class: 'unavailable' });
 });
 
-test('toCopyableBody: exact bytes by default, no trailing newline added', () => {
-  const { text, warning } = toCopyableBody({ class: 'text', text: '{"a":1}' }, {});
-  assert.equal(text, '{"a":1}');
-  assert.equal(warning, null);
-});
-
-test('toCopyableBody: normaliseNewlines is opt-in', () => {
-  assert.equal(toCopyableBody({ class: 'text', text: 'a\r\nb' }, {}).text, 'a\r\nb');
-  assert.equal(toCopyableBody({ class: 'text', text: 'a\r\nb' }, { normaliseNewlines: true }).text, 'a\nb');
-});
-
-test('toCopyableBody: binary default is a placeholder, never raw bytes', () => {
-  const { text } = toCopyableBody({ class: 'binary', bytes: Uint8Array.from([0, 1]), byteLength: 2 }, {});
-  assert.equal(text, '# binary response body, 2 bytes — not copied');
-});
-
-test('toCopyableBody: binary base64 opt-in', () => {
-  const { text, warning } = toCopyableBody(
-    { class: 'binary', bytes: Uint8Array.from([0x41, 0x42]), byteLength: 2 },
-    { binaryFallback: 'base64' }
-  );
-  assert.equal(text, 'QUI=');
-  assert.ok(warning);
-});
-
-test('toCopyableBody: unavailable -> placeholder', () => {
-  const { text } = toCopyableBody({ class: 'unavailable', byteLength: 102400 }, {});
-  assert.equal(text, '# response body not captured by ngrok (102400 bytes)');
+test('classifyBody: binary carries the raw bytes for the caller to ignore', () => {
+  const bytes = Uint8Array.from([0xff, 0xfe]);
+  assert.deepEqual(classifyBody({ kind: 'bytes', bytes }), { class: 'binary', bytes });
 });

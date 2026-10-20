@@ -8,6 +8,8 @@ verified:
     at: "2026-10-18"
   - by: "okf-update"
     at: "2026-10-19"
+  - by: "okf-update"
+    at: "2026-10-20"
 sources:
   - uri: "file://AGENTS.md"
     credibility: high
@@ -28,10 +30,10 @@ is not a general-purpose extension and does not call ngrok's cloud API.
 ## Current state
 
 **Implemented, v0.1.0.** Four features: dark mode (see `concepts/dark-theme.md`), copy-as-cURL,
-per-header copy (request + response, always visible), and response-body copy (single action that
-copies ngrok's Summary rendering). No bundler, no runtime dependencies — plain ES2022 files loaded
-unpacked. The repo **is** a git repository (initialised 2026-10-18; re-initialised 2026-10-19 and
-pushed to `github.com/jchrisos/ngrok-inspect-plus`).
+per-header copy (request + response, always visible, value-only), and response-body copy (single
+action that copies ngrok's Summary rendering; binary bodies are ignored). No bundler, no runtime
+dependencies — plain ES2022 files loaded unpacked. The repo **is** a git repository (initialised
+2026-10-18; re-initialised 2026-10-19 and pushed to `github.com/jchrisos/ngrok-inspect-plus`).
 
 The extension follows the dashboard to **any loopback port**: the content scripts match all
 ports and `ngpp.isDashboard()` gates them, so a dashboard on a non-default port works with no

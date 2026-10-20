@@ -8,6 +8,8 @@ verified:
     at: "2026-10-18"
   - by: "okf-update"
     at: "2026-10-19"
+  - by: "okf-update"
+    at: "2026-10-20"
 sources:
   - uri: "file://docs/plans/ngrok-dashboard-features-2026-10-18.md"
     credibility: high
@@ -59,10 +61,17 @@ User-driven refinements on top of the original plan:
   button. That includes the per-header copy icons.
 - **Per-header copy is always visible** (not hover-revealed) and pinned to the **left** edge of the
   value cell, so the icon precedes the value; reserved `padding-left: 28px` keeps the table from
-  shifting.
+  shifting. Clicking it copies the **value only** (`ngpp.dom.cellValue(td)`), not `name: value` —
+  the confirmation toast names the header and the value: `Copied header <name> value.`
+- **Header names never wrap.** `white-space: nowrap` on the header-name `<th>`s
+  (`#request-pane-1`/`#response-pane-1` `table tbody th`); the auto layout otherwise squeezes that
+  column to ~83px and hyphenated names wrap onto 2-4 lines. The extra width is absorbed by ngrok's
+  own `overflow-x: auto` section.
 - **Response body is a single action with no dropdown** — it always copies ngrok's Summary
   rendering of the body (`#response-pane-0`), falling back to the raw body only when the Summary
-  pane has none, and to binary handling for non-text bodies.
+  pane has none. **Binary bodies are ignored entirely**: nothing is written to the clipboard (no
+  placeholder comment, no base64/ANSI-C escape), the button is marked unavailable and a toast says
+  `binary response body — not copied`. The old `responseBody.binaryFallback` setting was removed.
 - Toolbar buttons align flush to the panel's right edge (`Copy body` sits under `Replay`).
 
 ## Testing

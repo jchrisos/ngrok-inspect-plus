@@ -2,6 +2,41 @@
 
 Newest first. Dates are ISO (`YYYY-MM-DD`).
 
+## 2026-10-20
+
+- **Per-header copy now copies the value only** (user report: *"the copy header is copying key and
+  value, must copy only value"*). The click handler built the clipboard payload as
+  `` `${name}: ${value}` ``; it now copies `ngpp.dom.cellValue(td)` verbatim, so pasting a header
+  yields the bare value (e.g. `application/json`) instead of `Content-Type: application/json`.
+  The confirmation toast was then made explicit (user request: *"the message must be explicit:
+  'Copied header {{header name}} value.'"*): it now reads `` `Copied ${label} ${name} value.` ``
+  → `Copied header Content-Type value.` (request) / `Copied response header Content-Type value.`
+  (response). One-line change in `content/features/copy-header.js`; no markup, selector, or CSS
+  change. `make check` and `make test` stay green (37 pass).
+- **Header names no longer wrap** (user report: *"the header name is breaking line must be one
+  line"*). Measured live (ngrok 3.39.11): the dashboard's auto table layout squeezes the `<th>`
+  column to ~83px, so hyphenated names wrap — `Sec-Ch-Ua-Platform` onto 4 lines,
+  `Upgrade-Insecure-Requests` and `X-Forwarded-Proto` onto 2. Fix: `white-space: nowrap` on the
+  header-name cells (`#request-pane-1`/`#response-pane-1` `table tbody th`) in `content/ngpp.css`.
+  The column then sizes to the longest name (~178px request / ~253px response). Safe because the
+  table already lives in ngrok's own `overflow-x: auto` `div[class*="_section_"]`, so the extra
+  width scrolls rather than breaking the layout — verified visually against the live dashboard.
+- **Copy body now IGNORES binary responses** (user request: *"copy body must ignore binary
+  response"*). Previously a binary body copied a placeholder comment
+  (`# binary response body, N bytes — not copied`), or base64 / ANSI-C when the
+  `responseBody.binaryFallback` setting was changed. Now a binary body writes **nothing** to the
+  clipboard: `currentState()` classifies the hex-decoded bytes and returns a `binary` state,
+  `copyBody()` bails with an error toast (`binary response body — not copied`), and the button is
+  marked unavailable (`aria-disabled` + `title`), like the `empty`/`not-captured` states. The
+  now-dead `responseBody.binaryFallback` setting was removed from `content/settings.js`,
+  `background/settings.js` (kept in sync) and the popup, and the unused `toCopyableBody` / `ansiC`
+  / `toBase64` helpers were dropped from `content/response-body.js` (its `decodeBytes`,
+  `classifyBody`, `splitRawResponse` remain; `decodeBytes` is still used by copy-as-cURL). Verified
+  live on the dashboard by injecting the scripts with a `chrome` stub: a real text body still copies
+  (`Copied response body (39042 chars)`) while a monkeypatched binary reader yields 0 clipboard
+  writes and the binary toast. Tests: `tests/response-body.test.js` updated (the `toCopyableBody`
+  cases replaced by a `classifyBody` binary-bytes assertion); `make test` → 33 pass.
+
 ## 2026-10-19
 
 - **Per-header copy icons moved to the LEFT of the value** (user request: *"the copy header values

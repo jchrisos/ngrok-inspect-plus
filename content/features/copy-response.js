@@ -1,10 +1,11 @@
-/* ngrok-inspect-plus — Feature 4: copy the response body (plus response headers, §6.6).
+/* ngrok-inspect-plus — Feature 4: copy the response body.
  * The response section has no toolbar of its own (verified: the single .pull-right is
  * on the request side), so we create one.
  *
  * Per user request this is a SINGLE action with no dropdown: it always copies ngrok's
  * own Summary rendering of the body (the "summary value"), falling back to the raw body
- * when the Summary pane has nothing, and to the binary handling for non-text bodies. */
+ * when the Summary pane has nothing. Binary bodies are IGNORED entirely — nothing is
+ * written to the clipboard (no placeholder, no base64/escape). */
 (function (root) {
   const ngpp = (root.ngpp = root.ngpp || {});
 
@@ -27,18 +28,23 @@
     return null;
   }
 
-  /** The four states of §6.4, computed from the live DOM. */
+  /** The states of §6.4, computed from the live DOM. */
   function currentState() {
     const read = ngpp.readRawResponse();
     if (read.kind === 'unavailable') return { state: 'not-captured', read };
 
-    let byteLength;
-    if (read.kind === 'text') {
-      byteLength = ngpp.responseBody.splitRawResponse(read.text).body.length;
-    } else {
-      byteLength = splitBodyBytes(read.bytes).length;
-    }
+    const bodyBytes = read.kind === 'bytes' ? splitBodyBytes(read.bytes) : null;
+    const byteLength = bodyBytes
+      ? bodyBytes.length
+      : ngpp.responseBody.splitRawResponse(read.text).body.length;
     if (byteLength === 0) return { state: 'empty', read, byteLength };
+
+    // A binary body is ignored outright — checked before truncation so it never copies.
+    if (bodyBytes) {
+      const charset = ngpp.dom.declaredCharset(ngpp.SEL.respHeaderRow);
+      const cls = ngpp.responseBody.classifyBody({ kind: 'bytes', bytes: bodyBytes, charset });
+      if (cls.class === 'binary') return { state: 'binary', read, byteLength };
+    }
 
     const declared = ngpp.dom.contentLength(ngpp.SEL.respHeaderRow);
     if (declared != null && byteLength < declared) {
@@ -50,6 +56,7 @@
   const REASON = {
     empty: 'no response body',
     'not-captured': 'response body not captured by ngrok',
+    binary: 'binary response body — not copied',
   };
 
   function ensure() {
@@ -99,7 +106,7 @@
     const rb = settings.responseBody;
     const { state, read, byteLength, declared } = currentState();
 
-    if (state === 'not-captured' || state === 'empty') {
+    if (state === 'not-captured' || state === 'empty' || state === 'binary') {
       ngpp.toast.show(REASON[state], 'error');
       return;
     }
@@ -111,17 +118,15 @@
       const split = ngpp.responseBody.splitRawResponse(read.text);
       // Always the Summary rendering; raw body only if the Summary pane has none.
       text = readSummaryBody() ?? split.body;
-      if (rb.normaliseNewlines) text = text.replace(/\r\n/g, '\n');
-      if (state === 'truncated') warning = `copied ${byteLength} of ${declared} bytes (truncated by ngrok)`;
     } else {
+      // Binary was filtered out in currentState(), so the bytes decode to text here.
       const bytes = splitBodyBytes(read.bytes);
       const charset = ngpp.dom.declaredCharset(ngpp.SEL.respHeaderRow);
       const cls = ngpp.responseBody.classifyBody({ kind: 'bytes', bytes, charset });
-      const out = ngpp.responseBody.toCopyableBody(Object.assign({}, cls, { byteLength: bytes.length }), rb);
-      text = out.text;
-      warning = out.warning;
-      if (state === 'truncated') warning = `copied ${byteLength} of ${declared} bytes (truncated by ngrok)`;
+      text = readSummaryBody() ?? cls.text;
     }
+    if (rb.normaliseNewlines) text = text.replace(/\r\n/g, '\n');
+    if (state === 'truncated') warning = `copied ${byteLength} of ${declared} bytes (truncated by ngrok)`;
 
     const res = await ngpp.copyText(text);
     if (!res.ok) {

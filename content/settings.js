@@ -16,7 +16,6 @@
     },
     responseBody: {
       normaliseNewlines: false,
-      binaryFallback: 'comment', // comment | escaped | base64
     },
   };
 

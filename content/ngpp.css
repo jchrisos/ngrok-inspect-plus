@@ -10,6 +10,16 @@
   margin-right: 0;
 }
 
+/* Header names must stay on ONE line. The auto table layout squeezes the <th>
+ * column to ~83px and hyphenated names (Sec-Ch-Ua-Platform, Upgrade-Insecure-
+ * Requests, X-Forwarded-Proto) wrap onto 2-4 lines. nowrap lets the column size
+ * to the longest name; the table already lives in an `overflow-x: auto` section,
+ * so the extra width scrolls instead of breaking the layout. */
+#request-pane-1 table tbody th,
+#response-pane-1 table tbody th {
+  white-space: nowrap;
+}
+
 /* Per-header copy button: inside the existing <td>, ALWAYS visible, pinned to the
  * LEFT edge so the icon sits before the value rather than after it. */
 #request-pane-1 table tbody td,

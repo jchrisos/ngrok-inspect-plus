@@ -12,7 +12,6 @@ const DEFAULTS = {
   },
   responseBody: {
     normaliseNewlines: false,
-    binaryFallback: 'comment',
   },
 };
 

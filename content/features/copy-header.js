@@ -50,8 +50,8 @@
         const td = row.querySelector('td');
         if (!name || !td) return;
         const value = ngpp.dom.cellValue(td);
-        ngpp.copyText(`${name}: ${value}`).then((res) => {
-          if (res.ok) ngpp.toast.show(`Copied ${label}: ${name}`);
+        ngpp.copyText(value).then((res) => {
+          if (res.ok) ngpp.toast.show(`Copied ${label} ${name} value.`);
           else ngpp.toast.show('Copy failed', 'error');
         });
       });
