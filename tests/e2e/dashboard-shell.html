@@ -1,0 +1,90 @@
+<!doctype html>
+<!-- ngrok-inspect-plus e2e fixture — a SYNTHETIC ngrok dashboard shell.
+     Hand-built from content/selectors.js (the single source of truth) because the real agent
+     dashboard needs a live ngrok tunnel. It reproduces the stable shell markers that
+     ngpp.isDashboard() keys off (<body id="ngrok">, meta author=ngrok) plus the CSS-module
+     class prefixes the selectors match by attribute-prefix.
+
+     NOTE: the <code> contents below are deliberately NOT indented — textContent is the payload
+     the extension reads, so any leading whitespace would change what is copied. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="author" content="ngrok">
+<title>ngrok — inspect</title>
+</head>
+<body id="ngrok">
+<div id="app">
+  <nav class="navbar">
+    <span id="connection-status">online</span>
+  </nav>
+
+  <!-- request list -->
+  <table class="roundTripSelect_1a2b3c">
+    <tbody>
+      <tr class="_selected_9z8y7x"><td>POST /hello?x=1</td></tr>
+      <tr><td>GET /data.json</td></tr>
+    </tbody>
+  </table>
+
+  <!-- detail panel -->
+  <div class="_inspectRoundTrip_d4e5f6">
+    <h3 class="wrapped">POST /hello?x=1</h3>
+
+    <div class="pull-right">
+      <div id="replay"><button type="button" class="btn btn-primary">Replay</button></div>
+    </div>
+
+    <section id="request-pane-0"><h6>Request</h6></section>
+
+    <section id="request-pane-1">
+      <table>
+        <tbody>
+          <tr><th>Host</th><td>test-extension.sa.ngrok.io</td></tr>
+          <tr><th>X-Forwarded-Proto</th><td>https</td></tr>
+          <tr><th>X-Custom-Header</th><td>abc123</td></tr>
+          <tr><th>Content-Type</th><td>application/json</td></tr>
+          <tr><th>Content-Length</th><td>22</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="request-pane-2"><pre><code>POST /hello?x=1 HTTP/1.1
+Host: test-extension.sa.ngrok.io
+X-Forwarded-Proto: https
+X-Custom-Header: abc123
+Content-Type: application/json
+Content-Length: 22
+
+{"name":"julio","n":2}</code></pre></section>
+
+    <section id="request-pane-3"><pre><code></code></pre></section>
+  </div>
+
+  <!-- response inspector: the single ._inspector_ wrapper copy-response.js looks for -->
+  <div class="_inspector_g7h8i9">
+    <section id="response-pane-0">
+      <h6>11 bytes</h6>
+      <pre><code>{"ok":true}</code></pre>
+    </section>
+
+    <section id="response-pane-1">
+      <table>
+        <tbody>
+          <tr><th>Content-Type</th><td>application/json</td></tr>
+          <tr><th>Content-Length</th><td>11</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="response-pane-2"><pre><code>HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 11
+
+{"ok":true}</code></pre></section>
+
+    <section id="response-pane-3"><pre><code></code></pre></section>
+  </div>
+</div>
+</body>
+</html>

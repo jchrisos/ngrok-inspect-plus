@@ -6,6 +6,7 @@
 #
 #   make            # help
 #   make test       # unit tests (no browser)
+#   make e2e        # end-to-end smoke test in a real Chrome (no npm deps)
 #   make fixtures   # controlled response bodies on :8080 (terminal A)
 #   make tunnel     # ngrok tunnel            (terminal B)
 #   make traffic    # send every branch through the tunnel (terminal C)
@@ -18,7 +19,7 @@ PORT      ?= 8080
 SUBDOMAIN ?= test-extension
 TUNNEL_URL ?= https://$(SUBDOMAIN).sa.ngrok.io
 
-.PHONY: help test check load serve tunnel traffic fixtures stop
+.PHONY: help test check load serve tunnel traffic fixtures stop e2e
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -27,8 +28,11 @@ help: ## Show this help
 test: ## Run the pure-logic unit tests (node --test)
 	node --test 'tests/*.test.js' 'tests/*.test.mjs'
 
+e2e: ## End-to-end smoke test in a real Chrome (no npm deps; see tests/e2e/run.mjs)
+	node tests/e2e/run.mjs
+
 check: ## Syntax-check all JS and validate the JSON manifests
-	@for f in content/*.js content/features/*.js background/*.js theme/apply-dark.js theme/apply-dark-auto.js popup/popup.js tests/*.js tests/*.mjs; do \
+	@for f in content/*.js content/features/*.js background/*.js theme/apply-dark.js theme/apply-dark-auto.js popup/popup.js tests/*.js tests/*.mjs tests/e2e/*.mjs; do \
 		node --check "$$f" || exit 1; \
 	done
 	@python3 -m json.tool manifest.json >/dev/null && echo "manifest.json OK"

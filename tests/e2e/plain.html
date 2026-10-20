@@ -1,0 +1,23 @@
+<!doctype html>
+<!-- ngrok-inspect-plus e2e fixture — an UNRELATED localhost app.
+     Same shape as any local dev server: no <body id="ngrok">, no ngrok meta tag. The content
+     scripts match every loopback port, so this page proves ngpp.isDashboard() keeps them out. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>some other localhost app</title>
+</head>
+<body id="app">
+<div id="app-root">
+  <nav class="navbar"><span>unrelated app</span></nav>
+  <table class="roundTripSelect_1a2b3c">
+    <tbody>
+      <tr><td>not a ngrok request</td></tr>
+    </tbody>
+  </table>
+  <div class="_inspectRoundTrip_d4e5f6">
+    <div class="pull-right"><div id="replay"><button type="button">Replay</button></div></div>
+  </div>
+</div>
+</body>
+</html>

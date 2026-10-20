@@ -4,6 +4,7 @@
   "private": true,
   "description": "Chrome extension improving the local ngrok dashboard (dark mode, copy-as-cURL, header/body copy).",
   "scripts": {
-    "test": "node --test 'tests/*.test.js' 'tests/*.test.mjs'"
+    "test": "node --test 'tests/*.test.js' 'tests/*.test.mjs'",
+    "e2e": "node tests/e2e/run.mjs"
   }
 }

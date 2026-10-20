@@ -22,6 +22,11 @@ plain ES2022 files loaded unpacked from the repo root.
 
 - `make test` or `npm test` — unit tests for the pure logic (`node --test 'tests/*.test.js' 'tests/*.test.mjs'`).
   Single file: `node --test tests/curl.test.js`.
+- `make e2e` or `npm run e2e` — end-to-end smoke test in a real Chrome (`node tests/e2e/run.mjs`,
+  26 checks). **No npm dependencies**: it drives Chrome over the DevTools Protocol with Node's
+  built-in `WebSocket`/`fetch`, and serves a synthetic dashboard shell
+  (`tests/e2e/dashboard-shell.html`) so it needs no ngrok tunnel. See "You cannot automate loading
+  the extension" below for the two modes.
 - `make check` — syntax-check every JS file and validate the JSON manifests.
 - `make load` — prints the load-unpacked / reload steps.
 - `make` (no target) — lists all targets.
@@ -127,6 +132,13 @@ This project uses the official Open Knowledge Format (OKF v0.2) located in `./.o
   `--disable-features=DisableLoadExtensionCommandLineSwitch`; verified with a trivial extension).
   Load it by hand via `chrome://extensions` → **Load unpacked**. The SW registration logic is
   covered by `tests/service-worker.test.mjs` instead.
+  - `tests/e2e/run.mjs` detects this and falls back to **inject mode**: it injects the content
+    scripts listed in `manifest.json` into the fixture page with
+    `Page.addScriptToEvaluateOnNewDocument` (plus a `chrome.storage`/`chrome.runtime` shim). That
+    exercises everything except manifest-based registration, and it is the mode you get here. On a
+    Chrome that honours the flag (CI), it runs in **extension mode** and covers the full path. Pass
+    `--strict` to make the harness fail instead of falling back. The mode is printed at the top of
+    every run — never read a green run as "the extension loaded".
 - **Never leave the ngrok tunnel running.** `ngrok http 8080 --subdomain test-extension`
   exposes the served directory to the public internet. Kill it (and the fixture server) when
   done — a subagent has already leaked this once.
