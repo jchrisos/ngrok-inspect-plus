@@ -4,6 +4,24 @@ Newest first. Dates are ISO (`YYYY-MM-DD`).
 
 ## 2026-10-20
 
+- **Chrome Web Store Best Practices review, plus the P0 submission content.** A section-by-section
+  review against [Google's guideline](https://developer.chrome.com/docs/webstore/best-practices)
+  (`docs/plans/cws-best-practices-review-2026-10-20.md`) found the extension **compliant in every
+  area checkable from the repo**: single purpose, MV3 with no remote code and no
+  `web_accessible_resources`, no `eval`, one `innerHTML` that writes a constant
+  (`content/features/copy-header.js:31`), page-derived data always handled via `textContent`, and
+  **bfcache-safe** (grep for `unload`/`beforeunload`/`pagehide`/`WebSocket`/`RTCPeerConnection`/
+  `EventSource`/`sendBeacon`/`XMLHttpRequest` → 0 hits; the DOM watch stays `MutationObserver` +
+  rAF). The `document_start` block is CSS-only, so it cannot block parsing. Gaps are
+  **submission-side, not code**: no e2e test (guideline recommends Puppeteer; `--load-extension` is
+  ignored in this environment), and the required listing images (tile/marquee/screenshots) are
+  absent — the four icons are present and pixel-exact. Decisions recorded: **category = Developer
+  Tools** (not Accessibility), a **non-affiliation disclaimer** for the third-party brand in the
+  name, and a **"no data collected"** privacy posture. New concept
+  `concepts/chrome-web-store.md`; ready-to-paste listing copy, Privacy-tab answers, permission
+  justifications, test instructions and the image checklist in
+  `docs/specs/store-listing-2026-10-20.md`, and the publishable policy in
+  `docs/specs/privacy-policy.md`. No source code changed.
 - **Front-end validation review, then the fixes** (`docs/plans/frontend-validation-2026-10-20.md`).
   A full read-only review of every source/test/doc file plus a live dashboard inspection found no
   Critical or security defects, and three real bugs — all now fixed:

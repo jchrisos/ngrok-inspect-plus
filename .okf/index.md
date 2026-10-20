@@ -14,6 +14,7 @@ This bundle captures the current, verified state of the `ngrok-inspect-plus` rep
 - [Extension Architecture](./concepts/architecture.md) — boundaries, no-FOUC theme, injection survival.
 - [Dark Theme](./concepts/dark-theme.md) — cascade strategy, state-dependent pitfalls, verification method.
 - [Manifest V3](./concepts/manifest-v3.md) — platform decision and its architectural consequences.
+- [Chrome Web Store Publishing](./concepts/chrome-web-store.md) — CWS Best Practices compliance, listing posture, open submission items.
 - [Local Testing](./concepts/local-testing.md) — how to run the dashboard with real tunnel data.
 
 ## Changelog
