@@ -56,7 +56,7 @@ plain ES2022 files loaded unpacked from the repo root.
     the agent's stable shell markers (`<body id="ngrok">`, `<meta name="author" content="ngrok">`),
     not the class hashes — is the gate in `main.js`: on any other localhost page the bundle bails
     before doing anything (no console spam, no stray theming).
-  - `observer.js` re-asserts injected UI on a debounced `MutationObserver`; every feature's
+  - `observer.js` re-asserts injected UI on an rAF-coalesced `MutationObserver`; every feature's
     `ensure()` **must be idempotent** (guarded by `data-ngpp`).
   - Copy handlers read the **live DOM at click time** — never capture payloads in a closure
     (React reuses `<tr>`/`<td>` nodes across selection changes).

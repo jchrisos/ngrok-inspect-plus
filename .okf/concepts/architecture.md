@@ -46,8 +46,10 @@ rather than reusing the dashboard's data layer (which speaks gRPC-Web + protobuf
   unconditional `classList.add`, so it is registered for the **default `:4040` origin only** — a
   dashboard on a custom port is themed at `document_idle` by `content/theme.js` (possible brief
   flash). The live-theme broadcast, by contrast, queries **all** loopback ports.
-- **Injection survival.** One debounced `MutationObserver` (`content/observer.js`) re-asserts
-  injected UI; every feature's `ensure()` is idempotent (guarded by `data-ngpp`).
+- **Injection survival.** One rAF-coalesced `MutationObserver` (`content/observer.js`) re-asserts
+  injected UI; every feature's `ensure()` is idempotent (guarded by `data-ngpp`). The shape gate
+  requires only the stable shell (`app` + `navbar`) and warns once — the list is empty and the
+  panel absent whenever nothing is selected, which is a normal state, not a DOM change.
 - **Selector registry.** `content/selectors.js` is the single source of truth; 27 of the
   dashboard's classes are CSS-module hashes matched by attribute-prefix.
 - **Stale-closure avoidance.** Copy handlers read the live DOM at click time because React
@@ -84,10 +86,20 @@ The DOM-facing and manifest-level logic is covered without a browser:
 
 - `tests/selectors.test.mjs` loads the classic `content/selectors.js` in a **`node:vm` sandbox**
   with a stubbed `document`, so `ngpp.isDashboard()` (the gate that keeps the bundle off unrelated
-  localhost pages) is unit-tested despite being a non-module content script.
+  localhost pages) is unit-tested despite being a non-module content script. It also pins the
+  `assertDashboardShape()` invariant: the gate must require only the stable shell (`app` +
+  `navbar`) — requiring the list/panel would warn on every empty dashboard — and must warn once.
 - `tests/manifest.test.mjs` parses `manifest.json` and asserts the match patterns carry **no
-  explicit port** — the regression guard for the non-4040 dashboard bug.
+  explicit port** (the regression guard for the non-4040 dashboard bug), plus the permission set,
+  the absence of `web_accessible_resources`, the version ↔ `package.json` match, icons on disk and
+  the description length.
 - `tests/service-worker.test.mjs` loads the real service worker against a mocked `chrome` API.
+- `tests/copy-response-state.test.mjs` drives `copy-response.ensure()` in a `node:vm` sandbox to
+  pin the truncation arithmetic: a non-ASCII body must be measured in **bytes** (`TextEncoder`),
+  not UTF-16 code units, or it is falsely reported truncated against `Content-Length`.
+- `tests/settings-sync.test.mjs` asserts `content/settings.js` and `background/settings.js`
+  `DEFAULTS` stay identical — the enforcement for the "keep in sync" rule (no build step can share
+  one file between a classic content script and the ESM service worker).
 
 ## Verified against
 

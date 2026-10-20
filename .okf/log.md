@@ -4,6 +4,35 @@ Newest first. Dates are ISO (`YYYY-MM-DD`).
 
 ## 2026-10-20
 
+- **Front-end validation review, then the fixes** (`docs/plans/frontend-validation-2026-10-20.md`).
+  A full read-only review of every source/test/doc file plus a live dashboard inspection found no
+  Critical or security defects, and three real bugs — all now fixed:
+  - **B1 (High) — false "truncated" state for non-ASCII bodies.** `copy-response.js` compared the
+    text body's UTF-16 code-unit length against `Content-Length` (a **byte** count), so any accented
+    text / emoji / UTF-8 JSON reported as truncated (wrong button `title`, wrong toast). Now the text
+    path measures bytes with `new TextEncoder().encode(...)`. Pinned by a new vm-based test
+    (`tests/copy-response-state.test.mjs`), verified to fail against the pre-fix code.
+  - **B2 (Medium) — misleading shape gate.** `assertDashboardShape()` required `listRow`/`panel`/
+    `toolbarSlot`, which are absent on an empty list or when nothing is selected (a normal state),
+    so it warned `"dashboard DOM changed …"` on every observer pass. It now gates on the stable
+    shell (`app` + `navbar`) only and warns **once**; the per-feature `ensure()` early returns remain
+    the guards for "nothing selected".
+  - **B3 (Low) — theme-registration race.** Overlapping `reconcileThemeRegistration()` calls (rapid
+    theme toggles) could double-register the same id and throw an unhandled rejection. The SW now
+    serialises reconciles through a promise chain with a `catch` (and still returns the chain so the
+    mocked-SW test can `await` it).
+  - Improvements applied: `contentLength`/`declaredCharset` now short-circuit instead of cloning
+    every header cell (I1); the inline `#response-pane-0 h6` selector moved to the registry as
+    `SEL.respSummaryHeading` (I2); `splitBodyBytes` de-duplicated into `content/response-body.js`
+    (I3); `main.js` warns when a feature file fails to load (I4); `make check` now also
+    syntax-checks `background/*.js` (I5); the SW only reconciles/broadcasts on an actual `themeMode`
+    change (N5); and the injected header-copy icon gets a dark-mode colour that clears the palette's
+    lowest contrast (~3.6:1) (I7). New guards added: `tests/settings-sync.test.mjs` (content vs
+    background DEFAULTS drift), `assertDashboardShape` cases, `splitBodyBytes` cases, the
+    `includeCompressed` curl branch, and manifest invariants (permissions, no
+    `web_accessible_resources`, version ↔ `package.json`, icons on disk, description length).
+    `make check` and `make test` green — **35 → 52 tests**. AGENTS.md's "debounced observer" wording
+    corrected to rAF-coalesced (N2).
 - **Removed the "Non-UTF-8 body" setting** (user request: *"remove it"*). `curl.binaryBody`
   (`comment` | `escaped` | `base64`) was dropped from the popup and from `content/settings.js` /
   `background/settings.js`. A non-UTF-8 request body is now always **omitted** from the curl command
