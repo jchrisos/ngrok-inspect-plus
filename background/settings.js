@@ -7,7 +7,6 @@ const DEFAULTS = {
     multiline: true,
     stripForwardedHeaders: true,
     includeCompressed: false,
-    scheme: 'https',
     binaryBody: 'comment',
   },
   responseBody: {

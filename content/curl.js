@@ -69,11 +69,20 @@
     return { method: m[1], target: m[2], version: m[3], headers, body };
   }
 
-  /** Absolute-form target wins; else Host header; else the page origin (plan R1). */
-  function buildUrl(target, headers, scheme, origin) {
+  /** The scheme the original request arrived on. ngrok injects `X-Forwarded-Proto`,
+   * so the curl URL reproduces the real scheme instead of a user-chosen one. */
+  function schemeFromHeaders(headers) {
+    const proto = headers.find((h) => h.name.toLowerCase() === 'x-forwarded-proto');
+    if (!proto || !proto.value) return null;
+    const value = proto.value.split(',')[0].trim().toLowerCase();
+    return value === 'http' || value === 'https' ? value : null;
+  }
+
+  /** Absolute-form target wins; else Host header + the request's scheme; else the page origin (plan R1). */
+  function buildUrl(target, headers, origin) {
     if (/^https?:\/\//i.test(target)) return target;
     const host = headers.find((h) => h.name.toLowerCase() === 'host');
-    if (host && host.value) return `${scheme}://${host.value}${target}`;
+    if (host && host.value) return `${schemeFromHeaders(headers) || 'https'}://${host.value}${target}`;
     return `${origin || ''}${target}`;
   }
 
@@ -109,7 +118,6 @@
         multiline: true,
         stripForwardedHeaders: true,
         includeCompressed: false,
-        scheme: 'https',
         binaryBody: 'comment', // comment | escaped | base64
       },
       settings || {}
@@ -119,7 +127,7 @@
     const args = [];
 
     args.push(`-X ${req.method}`);
-    args.push(sh(buildUrl(req.target, req.headers, s.scheme, origin)));
+    args.push(sh(buildUrl(req.target, req.headers, origin)));
 
     let hasAcceptEncoding = false;
     for (const h of req.headers) {
@@ -179,5 +187,5 @@
     return cmd;
   }
 
-  return { sh, parseRawRequest, toCurl, ansiC, toBase64, buildUrl };
+  return { sh, parseRawRequest, toCurl, ansiC, toBase64, buildUrl, schemeFromHeaders };
 });

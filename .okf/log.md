@@ -4,6 +4,16 @@ Newest first. Dates are ISO (`YYYY-MM-DD`).
 
 ## 2026-10-20
 
+- **Copy as cURL now derives the URL scheme from the request** (user request: *"the setting url scheme
+  is not necessary, mantain the url scheme from request"*). The `curl.scheme` setting (https/http)
+  was removed from the popup and from `content/settings.js` / `background/settings.js`; `buildUrl`
+  now reads ngrok's injected `X-Forwarded-Proto` header (verified live: `https`) and uses it for the
+  `scheme://Host` URL, falling back to `https` when the header is absent. An absolute-form target
+  still keeps its own scheme, and a missing Host header still falls back to the page origin.
+  `X-Forwarded-Proto` continues to be stripped from the emitted `-H` flags as before. New tests in
+  `tests/curl.test.js` cover the `http` case, the `https` fallback and the absolute-target case;
+  `make test` → 36 pass. Verified live against the dashboard: `curl -X GET
+  'https://zonaazul.sa.ngrok.io/'`.
 - **Per-header copy now copies the value only** (user report: *"the copy header is copying key and
   value, must copy only value"*). The click handler built the clipboard payload as
   `` `${name}: ${value}` ``; it now copies `ngpp.dom.cellValue(td)` verbatim, so pasting a header

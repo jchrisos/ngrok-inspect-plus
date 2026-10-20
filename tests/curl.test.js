@@ -119,6 +119,40 @@ test('toCurl: single-line mode joins with spaces', () => {
   assert.equal(command, "curl -X GET 'http://localhost:4040/' -H 'Accept: */*'");
 });
 
+test('toCurl: URL scheme comes from the request (X-Forwarded-Proto), not a setting', () => {
+  const req = {
+    method: 'GET',
+    target: '/x',
+    headers: [
+      { name: 'Host', value: 'example.sa.ngrok.io' },
+      { name: 'X-Forwarded-Proto', value: 'http' },
+    ],
+    bodyKind: 'empty',
+  };
+  const { command } = toCurl(req, {}, { origin: 'http://localhost:4040' });
+  assert.ok(command.includes("'http://example.sa.ngrok.io/x'"));
+});
+
+test('toCurl: falls back to https when X-Forwarded-Proto is absent', () => {
+  const req = { method: 'GET', target: '/x', headers: [{ name: 'Host', value: 'h.ngrok.io' }], bodyKind: 'empty' };
+  const { command } = toCurl(req, {}, { origin: 'http://localhost:4040' });
+  assert.ok(command.includes("'https://h.ngrok.io/x'"));
+});
+
+test('toCurl: an absolute-form target keeps its own scheme', () => {
+  const req = {
+    method: 'GET',
+    target: 'http://abs.example/y',
+    headers: [
+      { name: 'Host', value: 'h.ngrok.io' },
+      { name: 'X-Forwarded-Proto', value: 'https' },
+    ],
+    bodyKind: 'empty',
+  };
+  const { command } = toCurl(req, {}, { origin: 'http://localhost:4040' });
+  assert.ok(command.includes("'http://abs.example/y'"));
+});
+
 test('ansiC escapes non-printables', () => {
   assert.equal(ansiC(Uint8Array.from([0x41, 0x00, 0xff])), "$'A\\x00\\xff'");
 });

@@ -8,7 +8,7 @@
     'curl.includeCompressed',
     'responseBody.normaliseNewlines',
   ];
-  const SELECTS = ['curl.scheme', 'curl.binaryBody'];
+  const SELECTS = ['curl.binaryBody'];
 
   function getPath(obj, path) {
     return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
