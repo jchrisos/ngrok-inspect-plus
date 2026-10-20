@@ -4,6 +4,16 @@ Newest first. Dates are ISO (`YYYY-MM-DD`).
 
 ## 2026-10-20
 
+- **Removed the "Non-UTF-8 body" setting** (user request: *"remove it"*). `curl.binaryBody`
+  (`comment` | `escaped` | `base64`) was dropped from the popup and from `content/settings.js` /
+  `background/settings.js`. A non-UTF-8 request body is now always **omitted** from the curl command
+  with the leading warning comment `# ngrok-inspect-plus: body omitted: N bytes, non-UTF-8` (the old
+  default) — raw bytes are never emitted, and the `--data-binary` escaped/base64 forms are gone.
+  The now-unused `ansiC` / `toBase64` helpers were removed from `content/curl.js` (its
+  `sh`/`parseRawRequest`/`toCurl`/`buildUrl`/`schemeFromHeaders` remain). With no `<select>` left,
+  the popup's `SELECTS` handling in `popup/popup.js` was removed too. `tests/curl.test.js` updated
+  (dropped the `ansiC` test); `make test` → 35 pass. Verified live: a binary request yields the
+  comment + a body-less `curl -X POST …`.
 - **Copy as cURL now derives the URL scheme from the request** (user request: *"the setting url scheme
   is not necessary, mantain the url scheme from request"*). The `curl.scheme` setting (https/http)
   was removed from the popup and from `content/settings.js` / `background/settings.js`; `buildUrl`

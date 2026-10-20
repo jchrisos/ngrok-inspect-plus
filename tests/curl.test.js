@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { sh, parseRawRequest, toCurl, ansiC } = require('../content/curl.js');
+const { sh, parseRawRequest, toCurl } = require('../content/curl.js');
 
 test('sh quotes POSIX-ly, including embedded single quotes', () => {
   assert.equal(sh('abc'), "'abc'");
@@ -99,7 +99,7 @@ test('toCurl: unavailable body -> leading comment + headers only', () => {
   assert.ok(!command.includes('--data'));
 });
 
-test('toCurl: binary body default -> comment, no raw bytes', () => {
+test('toCurl: binary body -> omitted with a comment, never raw bytes', () => {
   const req = {
     method: 'POST',
     target: '/binary',
@@ -110,6 +110,7 @@ test('toCurl: binary body default -> comment, no raw bytes', () => {
   };
   const { command } = toCurl(req, {}, { origin: 'http://localhost:4040' });
   assert.ok(command.startsWith('# ngrok-inspect-plus: body omitted: 4 bytes, non-UTF-8\n'));
+  assert.ok(!command.includes('--data'));
 });
 
 test('toCurl: single-line mode joins with spaces', () => {
@@ -151,8 +152,4 @@ test('toCurl: an absolute-form target keeps its own scheme', () => {
   };
   const { command } = toCurl(req, {}, { origin: 'http://localhost:4040' });
   assert.ok(command.includes("'http://abs.example/y'"));
-});
-
-test('ansiC escapes non-printables', () => {
-  assert.equal(ansiC(Uint8Array.from([0x41, 0x00, 0xff])), "$'A\\x00\\xff'");
 });

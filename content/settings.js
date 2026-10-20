@@ -11,7 +11,6 @@
       multiline: true, // false => single-line (Windows cmd.exe)
       stripForwardedHeaders: true, // drop ngrok-injected X-Forwarded-*
       includeCompressed: false, // add --compressed and drop Accept-Encoding
-      binaryBody: 'comment', // comment | escaped | base64
     },
     responseBody: {
       normaliseNewlines: false,

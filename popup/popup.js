@@ -8,7 +8,6 @@
     'curl.includeCompressed',
     'responseBody.normaliseNewlines',
   ];
-  const SELECTS = ['curl.binaryBody'];
 
   function getPath(obj, path) {
     return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
@@ -26,7 +25,6 @@
       radio.checked = radio.value === s.themeMode;
     }
     for (const id of CHECKBOXES) document.getElementById(id).checked = Boolean(getPath(s, id));
-    for (const id of SELECTS) document.getElementById(id).value = String(getPath(s, id));
   }
 
   function wire() {
@@ -38,11 +36,6 @@
     for (const id of CHECKBOXES) {
       document.getElementById(id).addEventListener('change', (e) => {
         set(patchFor(id, e.target.checked));
-      });
-    }
-    for (const id of SELECTS) {
-      document.getElementById(id).addEventListener('change', (e) => {
-        set(patchFor(id, e.target.value));
       });
     }
   }

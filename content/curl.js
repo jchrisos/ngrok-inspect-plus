@@ -86,24 +86,6 @@
     return `${origin || ''}${target}`;
   }
 
-  function ansiC(bytes) {
-    let out = "$'";
-    for (const b of bytes) {
-      if (b === 0x27) out += "\\'";
-      else if (b === 0x5c) out += '\\\\';
-      else if (b >= 0x20 && b <= 0x7e) out += String.fromCharCode(b);
-      else out += '\\x' + b.toString(16).padStart(2, '0');
-    }
-    return out + "'";
-  }
-
-  function toBase64(bytes) {
-    let bin = '';
-    for (const b of bytes) bin += String.fromCharCode(b);
-    if (typeof btoa === 'function') return btoa(bin);
-    return Buffer.from(bytes).toString('base64'); // Node fallback
-  }
-
   /**
    * Build a curl command.
    * @param {{method:string,target:string,headers:{name:string,value:string}[],body?:string,
@@ -118,7 +100,6 @@
         multiline: true,
         stripForwardedHeaders: true,
         includeCompressed: false,
-        binaryBody: 'comment', // comment | escaped | base64
       },
       settings || {}
     );
@@ -150,14 +131,9 @@
     if (bodyKind === 'text' && req.body) {
       args.push(`--data-raw ${sh(req.body)}`); // literal, unlike --data (plan R4)
     } else if (bodyKind === 'binary') {
+      // A non-UTF-8 body cannot be pasted literally; omit it and warn (never raw bytes).
       const n = req.byteLength != null ? req.byteLength : req.bodyBytes ? req.bodyBytes.length : 0;
-      if (s.binaryBody === 'escaped' && req.bodyBytes) {
-        args.push(`--data-binary ${ansiC(req.bodyBytes)}`);
-      } else if (s.binaryBody === 'base64' && req.bodyBytes) {
-        args.push(`--data-binary ${sh(toBase64(req.bodyBytes))}`);
-      } else {
-        warnings.push(`body omitted: ${n} bytes, non-UTF-8`);
-      }
+      warnings.push(`body omitted: ${n} bytes, non-UTF-8`);
     } else if (bodyKind === 'unavailable') {
       warnings.push(
         req.byteLength != null
@@ -187,5 +163,5 @@
     return cmd;
   }
 
-  return { sh, parseRawRequest, toCurl, ansiC, toBase64, buildUrl, schemeFromHeaders };
+  return { sh, parseRawRequest, toCurl, buildUrl, schemeFromHeaders };
 });
