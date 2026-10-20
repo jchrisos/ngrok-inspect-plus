@@ -49,6 +49,7 @@ configuration. Only the pre-paint dark-mode script stays pinned to `:4040` (see
 | `theme/` | `dark.css` + the two 1-line bootstrap scripts (see `concepts/dark-theme.md`). |
 | `popup/` | Settings popup. |
 | `tests/` | `node --test` unit tests for the pure logic + the SW registration logic. |
+| `tests/e2e/` | Dependency-free CDP e2e harness (`run.mjs`) + its synthetic dashboard fixtures (`make e2e`). |
 | `tools/` | `fixture-server.py` — controlled response bodies for edge-case testing. |
 | `docs/plans/` | Implementation plans and review/validation reports. Plans never go under `.opencode/`. |
 | `.okf/` | This knowledge bundle. |

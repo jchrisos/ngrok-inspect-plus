@@ -4,6 +4,33 @@ Newest first. Dates are ISO (`YYYY-MM-DD`).
 
 ## 2026-10-20
 
+- **End-to-end test harness + manual test matrix + bfcache verification** (the review's P1 items).
+  - **`make e2e`** (`tests/e2e/run.mjs`, 26 checks) — a **dependency-free** e2e test: it drives a
+    real Chrome over the DevTools Protocol using Node's built-in `WebSocket`/`fetch` (no Puppeteer
+    install, no npm deps, consistent with the repo's no-build ethos) against a **synthetic** ngrok
+    dashboard shell (`tests/e2e/dashboard-shell.html`, hand-built from `content/selectors.js`).
+    It asserts: injection of all four features, the `isDashboard()` gate (an unrelated localhost app
+    stays untouched), idempotency across an observer pass, the exact clipboard payloads for
+    copy-as-cURL / per-header (value only) / response body, the confirmation toasts, dark mode via
+    emulated `prefers-color-scheme`, and bfcache. `Makefile` gained `e2e`; `make check` now
+    syntax-checks `tests/e2e/*.mjs`.
+  - **Two modes, auto-detected.** Chrome 155 here ignores `--load-extension` — re-verified, not
+    assumed: a CDP probe for a `service_worker` target found 0 (the one extension target was a
+    built-in component extension, type `background_page`). So the harness falls back to **inject
+    mode** (content scripts from `manifest.json` injected via
+    `Page.addScriptToEvaluateOnNewDocument`, plus a `chrome.storage`/`chrome.runtime` shim), which
+    exercises everything except manifest registration. Where the flag works (CI) it runs in
+    **extension mode**. `--strict` fails instead of falling back; the mode is printed on every run.
+  - **bfcache upgraded from static to verified** (`docs/plans/bfcache-verification-2026-10-20.md`):
+    dashboard → other page → back reports `type=navigate reasons=null`, i.e. served from the cache
+    with no new navigation entry. The check was **proved non-vacuous** by temporarily adding an
+    `unload` handler to the fixture, which flipped it to `type=back_forward` + non-empty `reasons`.
+  - **`docs/specs/manual-test-matrix.md`** covers what the automated suites cannot reach: FOUC on
+    `:4040` vs a custom port, the SW lifecycle, ngrok's own capture limits (empty/truncated/latin1/
+    binary/≥100 KiB), hover states under forced `:hover`, a11y, and a cross-Chrome/OS matrix. It
+    opens with what is already automated so nothing is re-tested by hand.
+  - `AGENTS.md` documents `make e2e` and the two modes under the existing "cannot automate loading
+    the extension" gotcha. No extension source code changed.
 - **Chrome Web Store Best Practices review, plus the P0 submission content.** A section-by-section
   review against [Google's guideline](https://developer.chrome.com/docs/webstore/best-practices)
   (`docs/plans/cws-best-practices-review-2026-10-20.md`) found the extension **compliant in every

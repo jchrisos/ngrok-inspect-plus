@@ -40,8 +40,8 @@ is submission completeness, which lives in the CWS dashboard, not in code. See
 | Manifest V3 | Met — no remote code, no `web_accessible_resources` (see `concepts/manifest-v3.md`) |
 | Security | Met — one `innerHTML` (a constant); page-derived data always via `textContent`; never re-injected |
 | Privacy | Met in code — zero collection; Privacy tab wording still required |
-| Performance — bfcache | Met — zero `unload`/`beforeunload`/WebSocket usage; DOM watch is `MutationObserver` + rAF |
-| Performance — e2e testing | **Partial** — 52 unit tests, no Puppeteer e2e |
+| Performance — bfcache | Met — zero `unload`/`beforeunload`/WebSocket usage; DOM watch is `MutationObserver` + rAF; **verified** by `make e2e` (see `docs/plans/bfcache-verification-2026-10-20.md`) |
+| Performance — e2e testing | Met — 52 unit tests + a 26-check dependency-free CDP e2e (`make e2e`); manual matrix in `docs/specs/manual-test-matrix.md` |
 | `document_start` cost | Met — CSS-only block; pre-paint JS is 1–3 lines |
 | User experience | Partial — no first-run affordance; sign-in N/A |
 | Store listing assets | **Gap** — icons valid; tile/marquee/screenshots absent |
@@ -62,6 +62,13 @@ is submission completeness, which lives in the CWS dashboard, not in code. See
 - **Broad host permissions are a known, justified trade-off** (`http://localhost/*`,
   `http://127.0.0.1/*`, no port) — the justification fields must explain the user-configurable
   dashboard port.
+- **The e2e fixture must track `content/selectors.js`.** `tests/e2e/dashboard-shell.html` is a
+  hand-built synthetic dashboard; when a selector moves, update the fixture in the same change or
+  `make e2e` will fail for the wrong reason. The fixture is deliberately *not* indented inside its
+  `<code>` blocks — `textContent` is the payload the extension copies.
+- **Never read a green `make e2e` as "the extension loaded".** Chrome here ignores
+  `--load-extension`, so the default run is inject mode. Only `--strict` (or the printed `MODE:`
+  line) proves the manifest-registration path was exercised.
 
 ## Submission content
 
@@ -69,10 +76,16 @@ Ready-to-paste listing text, Privacy-tab answers, permission justifications, tes
 the image checklist are in `docs/specs/store-listing-2026-10-20.md`. The publishable privacy policy
 is `docs/specs/privacy-policy.md`.
 
+## Testing
+
+- `make test` — 52 unit tests for the pure logic and the SW registration decisions.
+- `make e2e` — 26-check e2e in a real Chrome (see above). `docs/specs/manual-test-matrix.md` covers
+  the rest; `docs/plans/bfcache-verification-2026-10-20.md` records the bfcache evidence.
+
 ## Open items (not code)
 
 - **P0:** Privacy tab + privacy policy URL; 1–5 screenshots (1280×800 / 640×400); 440×280 tile;
   detailed description.
-- **P1:** Puppeteer e2e + manual test matrix; "not affiliated with ngrok" disclaimer; permission
-  justifications; record the bfcache verification.
+- **P1:** "not affiliated with ngrok" disclaimer; permission-justification fields. *(Both are
+  dashboard-side; the wording is drafted in `docs/specs/store-listing-2026-10-20.md`.)*
 - **P2:** `homepage_url` / `author` in `manifest.json`.
