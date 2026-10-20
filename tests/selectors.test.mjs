@@ -10,8 +10,8 @@ import vm from 'node:vm';
 
 const SRC = readFileSync(new URL('../content/selectors.js', import.meta.url), 'utf8');
 
-function loadSelectors(doc) {
-  const sandbox = { document: doc, console };
+function loadSelectors(doc, consoleStub = console) {
+  const sandbox = { document: doc, console: consoleStub };
   sandbox.globalThis = sandbox;
   vm.createContext(sandbox);
   vm.runInContext(SRC, sandbox);
@@ -41,4 +41,30 @@ test('isDashboard: false on an unrelated localhost app', () => {
 test('isDashboard: false before <body> exists', () => {
   const ngpp = loadSelectors({ body: null, querySelector: noMeta });
   assert.equal(ngpp.isDashboard(), false);
+});
+
+// B2 regression: the request list is empty and the detail panel absent whenever nothing is
+// selected — a normal state. The shape gate must only require the stable shell and must not
+// emit a misleading "DOM changed" warning for it (nor repeatedly).
+const shellOnly = (sel) => (sel === '#app' || sel === 'nav.navbar' ? {} : null);
+
+test('assertDashboardShape: shell present with nothing selected -> true, no warning', () => {
+  const warnings = [];
+  const ngpp = loadSelectors(
+    { body: { id: 'ngrok' }, querySelector: shellOnly },
+    { warn: (...a) => warnings.push(a.join(' ')) }
+  );
+  assert.equal(ngpp.assertDashboardShape(), true);
+  assert.equal(warnings.length, 0);
+});
+
+test('assertDashboardShape: a missing shell warns exactly once across repeated calls', () => {
+  const warnings = [];
+  const ngpp = loadSelectors(
+    { body: { id: 'ngrok' }, querySelector: () => null },
+    { warn: (...a) => warnings.push(a.join(' ')) }
+  );
+  assert.equal(ngpp.assertDashboardShape(), false);
+  assert.equal(ngpp.assertDashboardShape(), false);
+  assert.equal(warnings.length, 1);
 });

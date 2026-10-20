@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { splitRawResponse, decodeBytes, classifyBody } = require('../content/response-body.js');
+const { splitRawResponse, splitBodyBytes, decodeBytes, classifyBody } = require('../content/response-body.js');
 
 test('splitRawResponse separates head and body on CRLFCRLF', () => {
   const raw = 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nhello';
@@ -19,6 +19,20 @@ test('splitRawResponse: no separator -> whole thing is head, body empty', () => 
 test('splitRawResponse preserves body CRLF bytes', () => {
   const { body } = splitRawResponse('HTTP/1.1 200 OK\r\n\r\nline1\r\nline2');
   assert.equal(body, 'line1\r\nline2');
+});
+
+test('splitBodyBytes locates the CRLFCRLF separator and returns the body bytes', () => {
+  const bytes = Uint8Array.from([0x47, 0x45, 0x54, 13, 10, 13, 10, 0x68, 0x69]);
+  assert.deepEqual(splitBodyBytes(bytes), Uint8Array.from([0x68, 0x69]));
+});
+
+test('splitBodyBytes returns empty when there is no separator', () => {
+  assert.deepEqual(splitBodyBytes(Uint8Array.from([0x47, 0x45, 0x54])), new Uint8Array(0));
+});
+
+test('splitBodyBytes preserves a body containing its own CRLFCRLF', () => {
+  const bytes = Uint8Array.from([13, 10, 13, 10, 1, 13, 10, 13, 10, 2]);
+  assert.deepEqual(splitBodyBytes(bytes), Uint8Array.from([1, 13, 10, 13, 10, 2]));
 });
 
 test('decodeBytes honours a declared non-UTF-8 charset (iso-8859-1)', () => {

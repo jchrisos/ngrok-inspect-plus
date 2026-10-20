@@ -36,6 +36,7 @@
     respRawPlaceholder: '#response-pane-2 .alert',
     respHexCode: '#response-pane-3 pre > code',
     respSummaryBody: '#response-pane-0 pre > code',
+    respSummaryHeading: '#response-pane-0 h6', // "1,234 bytes" label above the Summary body
   };
 
   /** Is this page the ngrok agent dashboard?
@@ -51,16 +52,25 @@
     );
   };
 
-  /** Logs one warning if the DOM shape moved on. Returns false when it did. */
+  let shapeWarned = false;
+
+  /** Logs ONE warning if the dashboard shell moved on. Returns false when it did.
+   * The gate covers only the stable shell (`app` + `navbar`): the request list is empty and
+   * the detail panel absent whenever nothing is selected — a normal state, not a DOM change.
+   * Requiring the panel/toolbar here would fire a misleading warning on every empty dashboard.
+   * The per-feature `ensure()` early returns are the correct guards for "nothing selected". */
   ngpp.assertDashboardShape = function () {
-    const required = ['app', 'navbar', 'listRow', 'panel', 'toolbarSlot'];
+    const required = ['app', 'navbar'];
     const missing = required.filter((k) => !document.querySelector(ngpp.SEL[k]));
     if (missing.length) {
-      console.warn(
-        `[ngrok-inspect-plus] dashboard DOM changed — missing: ${missing.join(', ')}. ` +
-          `Verified against ngrok ${ngpp.NGROK_VERSION_VERIFIED}; this build may be newer. ` +
-          `Features will no-op.`
-      );
+      if (!shapeWarned) {
+        shapeWarned = true;
+        console.warn(
+          `[ngrok-inspect-plus] dashboard DOM changed — missing: ${missing.join(', ')}. ` +
+            `Verified against ngrok ${ngpp.NGROK_VERSION_VERIFIED}; this build may be newer. ` +
+            `Features will no-op.`
+        );
+      }
       return false;
     }
     return true;
@@ -87,20 +97,27 @@
       return clone.textContent.trim();
     },
 
-    /** Declared charset from a Content-Type header row, or null. */
+    /** Declared charset from a Content-Type header row, or null.
+     * Scans the rows directly so a non-matching row never pays `cellValue`'s clone cost. */
     declaredCharset(rowsSelector) {
-      for (const { name, value } of ngpp.dom.headerRows(rowsSelector)) {
-        if (name.toLowerCase() !== 'content-type') continue;
-        return /charset=([\w-]+)/i.exec(value)?.[1]?.toLowerCase() ?? null;
+      for (const row of document.querySelectorAll(rowsSelector)) {
+        const name = row.querySelector('th')?.textContent?.trim().toLowerCase();
+        if (name !== 'content-type') continue;
+        const td = row.querySelector('td');
+        if (!td) continue;
+        return /charset=([\w-]+)/i.exec(ngpp.dom.cellValue(td))?.[1]?.toLowerCase() ?? null;
       }
       return null;
     },
 
-    /** Content-Length as a number, or null. */
+    /** Content-Length as a number, or null. Same short-circuit as `declaredCharset`. */
     contentLength(rowsSelector) {
-      for (const { name, value } of ngpp.dom.headerRows(rowsSelector)) {
-        if (name.toLowerCase() !== 'content-length') continue;
-        const n = parseInt(value, 10);
+      for (const row of document.querySelectorAll(rowsSelector)) {
+        const name = row.querySelector('th')?.textContent?.trim().toLowerCase();
+        if (name !== 'content-length') continue;
+        const td = row.querySelector('td');
+        if (!td) continue;
+        const n = parseInt(ngpp.dom.cellValue(td), 10);
         return Number.isFinite(n) ? n : null;
       }
       return null;

@@ -140,6 +140,29 @@ test('toCurl: falls back to https when X-Forwarded-Proto is absent', () => {
   assert.ok(command.includes("'https://h.ngrok.io/x'"));
 });
 
+test('toCurl: includeCompressed drops Accept-Encoding and adds --compressed', () => {
+  const req = {
+    method: 'GET',
+    target: '/gz',
+    headers: [
+      { name: 'Accept-Encoding', value: 'gzip, deflate' },
+      { name: 'Accept', value: '*/*' },
+    ],
+    bodyKind: 'empty',
+  };
+  const { command } = toCurl(req, { includeCompressed: true }, { origin: 'http://localhost:4040' });
+  assert.ok(command.includes('--compressed'));
+  assert.ok(!command.includes('Accept-Encoding'));
+  // the other header is untouched
+  assert.ok(command.includes("-H 'Accept: */*'"));
+});
+
+test('toCurl: includeCompressed with no Accept-Encoding adds no --compressed', () => {
+  const req = { method: 'GET', target: '/', headers: [{ name: 'Accept', value: '*/*' }], bodyKind: 'empty' };
+  const { command } = toCurl(req, { includeCompressed: true }, { origin: 'http://localhost:4040' });
+  assert.ok(!command.includes('--compressed'));
+});
+
 test('toCurl: an absolute-form target keeps its own scheme', () => {
   const req = {
     method: 'GET',

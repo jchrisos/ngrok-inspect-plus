@@ -2,16 +2,6 @@
 (function (root) {
   const ngpp = (root.ngpp = root.ngpp || {});
 
-  /** Locate the CRLFCRLF separator in a byte stream and return the body bytes. */
-  function splitBodyBytes(bytes) {
-    for (let i = 0; i + 3 < bytes.length; i++) {
-      if (bytes[i] === 13 && bytes[i + 1] === 10 && bytes[i + 2] === 13 && bytes[i + 3] === 10) {
-        return bytes.slice(i + 4);
-      }
-    }
-    return new Uint8Array(0);
-  }
-
   /** When ngrok did not capture the body, rebuild method/target/headers from the DOM. */
   function readUnavailableRequest() {
     const title = document.querySelector(ngpp.SEL.panelTitle)?.textContent?.trim() || '';
@@ -53,7 +43,7 @@
     } else if (read.kind === 'bytes') {
       req = ngpp.curl.parseRawRequest(read.bytes);
       if (req) {
-        const bb = splitBodyBytes(read.bytes);
+        const bb = ngpp.responseBody.splitBodyBytes(read.bytes);
         byteLength = bb.length;
         if (bb.length === 0) {
           bodyKind = 'empty';

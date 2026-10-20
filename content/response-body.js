@@ -16,6 +16,17 @@
     return { head: text, body: '' };
   }
 
+  /** Locate the CRLFCRLF separator in a byte stream and return the body bytes.
+   * Shared by the curl and response-body features (was duplicated verbatim in both). */
+  function splitBodyBytes(bytes) {
+    for (let i = 0; i + 3 < bytes.length; i++) {
+      if (bytes[i] === 13 && bytes[i + 1] === 10 && bytes[i + 2] === 13 && bytes[i + 3] === 10) {
+        return bytes.slice(i + 4);
+      }
+    }
+    return new Uint8Array(0);
+  }
+
   /**
    * Decode bytes using a declared charset, then UTF-8. fatal:true so genuine binary
    * throws rather than producing mojibake (plan §6.3).
@@ -50,5 +61,5 @@
     return { class: 'unavailable' };
   }
 
-  return { splitRawResponse, decodeBytes, classifyBody };
+  return { splitRawResponse, splitBodyBytes, decodeBytes, classifyBody };
 });

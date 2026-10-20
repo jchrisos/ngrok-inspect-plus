@@ -19,7 +19,7 @@ const LOOPBACK_MATCHES = ['http://localhost/*', 'http://127.0.0.1/*'];
 
 const APPLY = { dark: 'theme/apply-dark.js', auto: 'theme/apply-dark-auto.js' };
 
-async function reconcileThemeRegistration() {
+async function doReconcileThemeRegistration() {
   const { themeMode = 'auto' } = await getSettings();
 
   const existing = (await chrome.scripting.getRegisteredContentScripts()).find((s) => s.id === SCRIPT_ID);
@@ -31,6 +31,19 @@ async function reconcileThemeRegistration() {
   await chrome.scripting.registerContentScripts([
     { id: SCRIPT_ID, matches: PREPAINT_MATCHES, js: [js], runAt: 'document_start', allFrames: false },
   ]);
+}
+
+/* Serialised: rapid theme toggles fire overlapping reconciles, which would otherwise
+ * interleave (unregister/register races) and re-register the same id — `registerContentScripts`
+ * then rejects with "Duplicate script ID" as an unhandled rejection. Chaining also lets
+ * callers await the reconcile (the test does). */
+let reconcileChain = Promise.resolve();
+
+function reconcileThemeRegistration() {
+  reconcileChain = reconcileChain.then(doReconcileThemeRegistration).catch((err) => {
+    console.warn('[ngrok-inspect-plus] theme registration failed', err);
+  });
+  return reconcileChain;
 }
 
 async function broadcastTheme() {
@@ -45,8 +58,12 @@ chrome.runtime.onInstalled.addListener(reconcileThemeRegistration);
 chrome.runtime.onStartup.addListener(reconcileThemeRegistration);
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes.settings) {
-    reconcileThemeRegistration();
-    broadcastTheme();
-  }
+  if (area !== 'sync' || !changes.settings) return;
+  // Only a themeMode change can affect the theme registration/broadcast; curl and
+  // responseBody edits must not trigger a reconcile + message to every dashboard tab.
+  const next = changes.settings.newValue || {};
+  const prev = changes.settings.oldValue || {};
+  if (next.themeMode === prev.themeMode) return;
+  reconcileThemeRegistration();
+  broadcastTheme();
 });

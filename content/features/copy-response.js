@@ -9,18 +9,9 @@
 (function (root) {
   const ngpp = (root.ngpp = root.ngpp || {});
 
-  function splitBodyBytes(bytes) {
-    for (let i = 0; i + 3 < bytes.length; i++) {
-      if (bytes[i] === 13 && bytes[i + 1] === 10 && bytes[i + 2] === 13 && bytes[i + 3] === 10) {
-        return bytes.slice(i + 4);
-      }
-    }
-    return new Uint8Array(0);
-  }
-
   /** ngrok's own reformatted body (Summary pane), or null. */
   function readSummaryBody() {
-    for (const h6 of document.querySelectorAll('#response-pane-0 h6')) {
+    for (const h6 of document.querySelectorAll(ngpp.SEL.respSummaryHeading)) {
       if (!/^\s*[\d,]+\s+bytes/.test(h6.textContent)) continue;
       const code = h6.parentElement?.querySelector('pre > code');
       if (code?.textContent) return code.textContent;
@@ -33,10 +24,13 @@
     const read = ngpp.readRawResponse();
     if (read.kind === 'unavailable') return { state: 'not-captured', read };
 
-    const bodyBytes = read.kind === 'bytes' ? splitBodyBytes(read.bytes) : null;
+    const bodyBytes = read.kind === 'bytes' ? ngpp.responseBody.splitBodyBytes(read.bytes) : null;
+    // `Content-Length` is a BYTE count, but a JS string's `.length` is UTF-16 code units —
+    // so any non-ASCII body (accents, emoji, UTF-8 JSON/HTML) would look shorter than declared
+    // and be falsely reported as truncated. Measure bytes on the text path too.
     const byteLength = bodyBytes
       ? bodyBytes.length
-      : ngpp.responseBody.splitRawResponse(read.text).body.length;
+      : new TextEncoder().encode(ngpp.responseBody.splitRawResponse(read.text).body).length;
     if (byteLength === 0) return { state: 'empty', read, byteLength };
 
     // A binary body is ignored outright — checked before truncation so it never copies.
@@ -120,7 +114,7 @@
       text = readSummaryBody() ?? split.body;
     } else {
       // Binary was filtered out in currentState(), so the bytes decode to text here.
-      const bytes = splitBodyBytes(read.bytes);
+      const bytes = ngpp.responseBody.splitBodyBytes(read.bytes);
       const charset = ngpp.dom.declaredCharset(ngpp.SEL.respHeaderRow);
       const cls = ngpp.responseBody.classifyBody({ kind: 'bytes', bytes, charset });
       text = readSummaryBody() ?? cls.text;

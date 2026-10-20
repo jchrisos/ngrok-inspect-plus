@@ -195,3 +195,13 @@ html.ngpp-dark ::selection {
   background: #2f4a63;
   color: #ffffff;
 }
+
+/* Injected per-header copy icon. The light-mode #337ab7 reaches only ~3.6:1 on the dark
+ * surface; lift it to a clearer link-blue (hover/focus must also beat ngpp.css's rules). */
+html.ngpp-dark .ngpp-hdr-copy {
+  color: #6cb6ff;
+}
+html.ngpp-dark .ngpp-hdr-copy:hover,
+html.ngpp-dark .ngpp-hdr-copy:focus-visible {
+  color: #9fd3ee;
+}

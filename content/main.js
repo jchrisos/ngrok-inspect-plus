@@ -18,6 +18,13 @@
       ngpp.features.copyResponse,
     ].filter(Boolean);
 
+    // A feature file that failed to load (manifest typo, syntax error, stale extension
+    // load) would otherwise vanish silently — surface it instead of a half-working bundle.
+    const missing = ['copyCurl', 'copyHeaderReq', 'copyHeaderResp', 'copyResponse'].filter(
+      (k) => !ngpp.features[k]
+    );
+    if (missing.length) console.warn('[ngrok-inspect-plus] features failed to load:', missing.join(', '));
+
     ngpp.observer.start(features);
   }
 
